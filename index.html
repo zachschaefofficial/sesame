@@ -1,0 +1,336 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f6f4ee">
+    <title>Sesame — Website limits</title>
+    <style>
+        :root { color-scheme: light; --ink: #24261f; --muted: #72766a; --paper: #f6f4ee; --card: #fffefa; --green: #526d4d; --line: #e7e5dc; --red: #a44d3e; }
+        * { box-sizing: border-box; }
+        body { margin: 0; background: var(--paper); color: var(--ink); font: 15px/1.5 ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+        button, input { font: inherit; }
+        button { cursor: pointer; }
+        .shell { max-width: 1020px; margin: auto; padding: 34px 24px 64px; }
+        header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 38px; }
+        .brand { display: flex; align-items: center; gap: 11px; font-weight: 750; font-size: 21px; letter-spacing: -.04em; }
+        .mark { width: 34px; height: 34px; display: grid; place-items: center; color: white; border-radius: 12px; background: var(--green); font-size: 19px; }
+        .eyebrow { color: var(--green); font-size: 12px; font-weight: 750; letter-spacing: .12em; text-transform: uppercase; }
+        h1 { font-size: clamp(30px, 5vw, 43px); letter-spacing: -.045em; line-height: 1.1; margin: 8px 0 10px; }
+        h2 { font-size: 18px; letter-spacing: -.02em; margin: 0; }
+        p { margin: 0; color: var(--muted); }
+        .intro { margin-bottom: 25px; }
+        .card { background: var(--card); border: 1px solid var(--line); border-radius: 18px; box-shadow: 0 8px 30px #29291a08; }
+        .auth-card { max-width: 430px; margin: 30px auto; padding: 28px; }
+        .auth-card h1 { font-size: 30px; }
+        .field { display: grid; gap: 7px; margin-top: 17px; }
+        label { color: #55594f; font-size: 13px; font-weight: 650; }
+        input { min-width: 0; width: 100%; border: 1px solid #dcded3; border-radius: 10px; padding: 11px 12px; color: var(--ink); background: white; outline: none; }
+        input:focus { border-color: var(--green); box-shadow: 0 0 0 3px #526d4d1c; }
+        button.primary { border: 0; border-radius: 10px; padding: 11px 16px; color: white; background: var(--green); font-weight: 700; }
+        button.primary:hover { background: #3f583b; }
+        button.subtle { border: 1px solid var(--line); border-radius: 9px; padding: 8px 11px; color: var(--ink); background: white; font-weight: 650; }
+        button.danger { color: var(--red); }
+        .auth-actions { display: flex; gap: 10px; margin-top: 22px; }
+        .auth-actions button { flex: 1; }
+        .text-button { border: 0; padding: 9px 0 0; color: var(--green); background: transparent; font-size: 13px; font-weight: 650; }
+        .message { min-height: 22px; margin-top: 13px; color: var(--red); font-size: 13px; }
+        .message.good { color: var(--green); }
+        .topline { display: flex; align-items: end; justify-content: space-between; gap: 18px; margin-bottom: 22px; }
+        .userline { display: flex; align-items: center; gap: 14px; color: var(--muted); font-size: 13px; }
+        .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 13px; margin: 24px 0; }
+        .stat { padding: 18px 20px; }
+        .stat-label { color: var(--muted); font-size: 12px; font-weight: 650; }
+        .stat-value { margin-top: 5px; font-size: 25px; font-weight: 750; letter-spacing: -.04em; }
+        .panel { padding: 22px; }
+        .panel-head { display: flex; justify-content: space-between; align-items: center; gap: 15px; margin-bottom: 17px; }
+        .add-form { display: grid; grid-template-columns: minmax(180px, 1fr) 175px auto; gap: 9px; padding: 14px; border: 1px solid var(--line); border-radius: 13px; background: #faf9f4; }
+        .add-form input { background: white; }
+        .table-wrap { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; margin-top: 14px; text-align: left; }
+        th { padding: 11px 10px; color: var(--muted); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; font-weight: 750; }
+        td { padding: 14px 10px; border-top: 1px solid var(--line); vertical-align: middle; }
+        td.site { font-weight: 700; }
+        .limit-control { display: flex; align-items: center; gap: 8px; max-width: 205px; }
+        .limit-control input { width: 82px; padding: 8px; }
+        .limit-control span { color: var(--muted); font-size: 12px; }
+        .empty { padding: 30px 12px; text-align: center; color: var(--muted); border-top: 1px solid var(--line); }
+        .footnote { margin-top: 15px; font-size: 12px; }
+        [hidden] { display: none !important; }
+        @media (max-width: 650px) {
+            .shell { padding: 22px 14px 40px; }
+            header { margin-bottom: 28px; }
+            .topline { align-items: start; flex-direction: column; }
+            .stats { gap: 8px; }
+            .stat { padding: 13px; }
+            .stat-value { font-size: 20px; }
+            .panel { padding: 15px; }
+            .add-form { grid-template-columns: 1fr 1fr; }
+            .add-form input:first-child { grid-column: 1 / -1; }
+            .add-form button { grid-column: 1 / -1; }
+            table { min-width: 620px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="shell">
+        <header>
+            <div class="brand"><span class="mark" aria-hidden="true">s</span> sesame</div>
+            <div class="eyebrow">Your focus, at a glance</div>
+        </header>
+
+        <main>
+            <section id="authView" class="card auth-card">
+                <div class="eyebrow">Sesame account</div>
+                <h1>Sign in to your dashboard</h1>
+                <p>Manage blocked websites and daily time limits.</p>
+                <form id="authForm">
+                    <div class="field"><label for="email">Email</label><input id="email" type="email" autocomplete="email" required></div>
+                    <div class="field"><label for="password">Password</label><input id="password" type="password" autocomplete="current-password" minlength="6" required></div>
+                    <div class="auth-actions">
+                        <button class="primary" type="submit" id="signInButton">Sign in</button>
+                        <button class="subtle" type="button" id="createAccountButton">Create account</button>
+                    </div>
+                </form>
+                <button class="text-button" id="resetPasswordButton" type="button">Forgot your password?</button>
+                <div id="authMessage" class="message" role="status" aria-live="polite"></div>
+            </section>
+
+            <section id="dashboard" hidden>
+                <div class="topline">
+                    <div>
+                        <div class="eyebrow">Website overview</div>
+                        <h1>Your blocked sites</h1>
+                        <p>See usage and adjust each site's daily allowance.</p>
+                    </div>
+                    <div class="userline"><span id="userEmail"></span><button class="subtle" id="signOutButton" type="button">Sign out</button></div>
+                </div>
+
+                <div class="stats">
+                    <div class="card stat"><div class="stat-label">Blocked sites</div><div class="stat-value" id="blockedCount">0</div></div>
+                    <div class="card stat"><div class="stat-label">Tracked time</div><div class="stat-value" id="trackedTime">0 min</div></div>
+                    <div class="card stat"><div class="stat-label">Sesame coins</div><div class="stat-value" id="coinCount">0</div></div>
+                </div>
+
+                <section class="card panel">
+                    <div class="panel-head"><h2>Blocked websites</h2></div>
+                    <form id="addSiteForm" class="add-form">
+                        <input id="siteInput" type="text" placeholder="example.com" aria-label="Website domain" required>
+                        <input id="siteLimitInput" type="number" min="1" step="1" value="60" aria-label="Daily time limit in minutes" required>
+                        <button class="primary" type="submit">Block website</button>
+                    </form>
+                    <div id="dashboardMessage" class="message" role="status" aria-live="polite"></div>
+                    <div class="table-wrap">
+                        <table id="sitesTable" hidden>
+                            <thead><tr><th>Website</th><th>Time spent</th><th>Daily allowance</th><th></th></tr></thead>
+                            <tbody id="sitesBody"></tbody>
+                        </table>
+                        <div id="emptyState" class="empty">No blocked websites yet. Add a domain above to get started.</div>
+                    </div>
+                    <p class="footnote">Time spent is read from <code>timeOnWebsite</code>. Daily allowances are saved in <code>siteTimeLimits</code> as seconds.</p>
+                </section>
+            </section>
+        </main>
+    </div>
+
+    <script type="module">
+        import {
+            observeAuth, createAccount, signIn, resetPassword, signOutUser,
+            ensureUserData, watchUserData, addBlockedSite, removeBlockedSite,
+            setSiteTimeLimit
+        } from "./firestore.js";
+
+        const authView = document.getElementById("authView");
+        const dashboard = document.getElementById("dashboard");
+        const authForm = document.getElementById("authForm");
+        const authMessage = document.getElementById("authMessage");
+        const dashboardMessage = document.getElementById("dashboardMessage");
+        const emailInput = document.getElementById("email");
+        const passwordInput = document.getElementById("password");
+        let currentUser = null;
+        let stopWatching = null;
+        let latestData = null;
+
+        function showMessage(element, message, good = false) {
+            element.textContent = message;
+            element.classList.toggle("good", good);
+        }
+
+        function readableError(error) {
+            const messages = {
+                "auth/email-already-in-use": "An account already uses that email. Try signing in.",
+                "auth/invalid-credential": "Email or password is incorrect.",
+                "auth/weak-password": "Use a password with at least 6 characters.",
+                "auth/too-many-requests": "Too many attempts. Please try again later.",
+                "permission-denied": "Firestore denied access. Check that your rules allow a signed-in user to access their own users/{uid} document."
+            };
+            return messages[error.code] || error.message || "Something went wrong. Please try again.";
+        }
+
+        function normalizeDomain(value) {
+            let url;
+            try {
+                url = new URL(value.includes("://") ? value : `https://${value}`);
+            } catch {
+                return null;
+            }
+            if (!["http:", "https:"].includes(url.protocol) || !url.hostname.includes(".") || url.username || url.password) return null;
+            return url.hostname.toLowerCase();
+        }
+
+        function formatDuration(seconds) {
+            const totalMinutes = Math.floor((Number(seconds) || 0) / 60);
+            const hours = Math.floor(totalMinutes / 60);
+            const minutes = totalMinutes % 60;
+            if (hours && minutes) return `${hours} hr ${minutes} min`;
+            if (hours) return `${hours} hr`;
+            return `${minutes} min`;
+        }
+
+        function render(data) {
+            latestData = data || {};
+            const sites = Array.isArray(latestData.blockedSites) ? latestData.blockedSites : [];
+            const time = latestData.timeOnWebsite || {};
+            const limits = latestData.siteTimeLimits || {};
+            document.getElementById("blockedCount").textContent = sites.length;
+            document.getElementById("trackedTime").textContent = formatDuration(Object.values(time).reduce((sum, value) => sum + (Number(value) || 0), 0));
+            document.getElementById("coinCount").textContent = Number(latestData.coins) || 0;
+
+            const body = document.getElementById("sitesBody");
+            body.replaceChildren();
+            document.getElementById("sitesTable").hidden = sites.length === 0;
+            document.getElementById("emptyState").hidden = sites.length !== 0;
+
+            for (const domain of [...sites].sort((a, b) => a.localeCompare(b))) {
+                const row = document.createElement("tr");
+                const siteCell = document.createElement("td");
+                siteCell.className = "site";
+                siteCell.textContent = domain;
+                const timeCell = document.createElement("td");
+                timeCell.textContent = formatDuration(time[domain]);
+
+                const limitCell = document.createElement("td");
+                const limitForm = document.createElement("form");
+                limitForm.className = "limit-control";
+                const limitInput = document.createElement("input");
+                limitInput.type = "number";
+                limitInput.min = "1";
+                limitInput.step = "1";
+                limitInput.required = true;
+                limitInput.value = Math.max(1, Math.round((Number(limits[domain]) || 3600) / 60));
+                limitInput.setAttribute("aria-label", `Daily time allowance in minutes for ${domain}`);
+                const unit = document.createElement("span");
+                unit.textContent = "min/day";
+                limitForm.append(limitInput, unit);
+                limitForm.addEventListener("submit", async (event) => {
+                    event.preventDefault();
+                    try {
+                        await setSiteTimeLimit(currentUser.uid, domain, Number(limitInput.value) * 60);
+                        showMessage(dashboardMessage, `Daily allowance updated for ${domain}.`, true);
+                    } catch (error) {
+                        showMessage(dashboardMessage, readableError(error));
+                    }
+                });
+                limitCell.append(limitForm);
+
+                const actionCell = document.createElement("td");
+                const removeButton = document.createElement("button");
+                removeButton.type = "button";
+                removeButton.className = "subtle danger";
+                removeButton.textContent = "Unblock";
+                removeButton.addEventListener("click", async () => {
+                    try {
+                        await removeBlockedSite(currentUser.uid, domain);
+                        showMessage(dashboardMessage, `${domain} is no longer blocked.`, true);
+                    } catch (error) {
+                        showMessage(dashboardMessage, readableError(error));
+                    }
+                });
+                actionCell.append(removeButton);
+                row.append(siteCell, timeCell, limitCell, actionCell);
+                body.append(row);
+            }
+        }
+
+        authForm.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            if (!authForm.reportValidity()) return;
+            try {
+                await signIn(emailInput.value.trim(), passwordInput.value);
+                showMessage(authMessage, "Signed in.", true);
+            } catch (error) {
+                showMessage(authMessage, readableError(error));
+            }
+        });
+
+        document.getElementById("createAccountButton").addEventListener("click", async () => {
+            if (!authForm.reportValidity()) return;
+            try {
+                await createAccount(emailInput.value.trim(), passwordInput.value);
+                showMessage(authMessage, "Account created.", true);
+            } catch (error) {
+                showMessage(authMessage, readableError(error));
+            }
+        });
+
+        document.getElementById("resetPasswordButton").addEventListener("click", async () => {
+            const email = emailInput.value.trim();
+            if (!email) {
+                showMessage(authMessage, "Enter your email first, then choose password reset.");
+                emailInput.focus();
+                return;
+            }
+            try {
+                await resetPassword(email);
+                showMessage(authMessage, "Password reset email sent.", true);
+            } catch (error) {
+                showMessage(authMessage, readableError(error));
+            }
+        });
+
+        document.getElementById("signOutButton").addEventListener("click", async () => {
+            try { await signOutUser(); } catch (error) { showMessage(dashboardMessage, readableError(error)); }
+        });
+
+        document.getElementById("addSiteForm").addEventListener("submit", async (event) => {
+            event.preventDefault();
+            const domain = normalizeDomain(document.getElementById("siteInput").value.trim());
+            const limitMinutes = Number(document.getElementById("siteLimitInput").value);
+            if (!domain) {
+                showMessage(dashboardMessage, "Enter a valid website domain, such as example.com.");
+                return;
+            }
+            if (!Number.isInteger(limitMinutes) || limitMinutes < 1) {
+                showMessage(dashboardMessage, "The daily allowance must be at least 1 minute.");
+                return;
+            }
+            try {
+                await addBlockedSite(currentUser.uid, domain, limitMinutes * 60);
+                document.getElementById("siteInput").value = "";
+                showMessage(dashboardMessage, `${domain} is blocked.`, true);
+            } catch (error) {
+                showMessage(dashboardMessage, readableError(error));
+            }
+        });
+
+        observeAuth(async (user) => {
+            currentUser = user;
+            if (stopWatching) stopWatching();
+            authView.hidden = Boolean(user);
+            dashboard.hidden = !user;
+            if (!user) {
+                latestData = null;
+                showMessage(authMessage, "");
+                return;
+            }
+            document.getElementById("userEmail").textContent = user.email || "Signed in";
+            try {
+                await ensureUserData(user.uid);
+                stopWatching = watchUserData(user.uid, render, (error) => showMessage(dashboardMessage, readableError(error)));
+            } catch (error) {
+                showMessage(dashboardMessage, readableError(error));
+            }
+        });
+    </script>
+</body>
+</html>
