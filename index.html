@@ -162,7 +162,7 @@
                 "auth/invalid-credential": "Email or password is incorrect.",
                 "auth/weak-password": "Use a password with at least 6 characters.",
                 "auth/too-many-requests": "Too many attempts. Please try again later.",
-                "permission-denied": "Firestore denied access. Check that your rules allow a signed-in user to access their own users/{uid} document."
+                "permission-denied": "Firestore denied access. Check that your rules allow a signed-in user to access the users document keyed by their email."
             };
             return messages[error.code] || error.message || "Something went wrong. Please try again.";
         }
@@ -225,7 +225,7 @@
                 limitForm.addEventListener("submit", async (event) => {
                     event.preventDefault();
                     try {
-                        await setSiteTimeLimit(currentUser.uid, domain, Number(limitInput.value) * 60);
+                        await setSiteTimeLimit(currentUser.email, domain, Number(limitInput.value) * 60);
                         showMessage(dashboardMessage, `Daily allowance updated for ${domain}.`, true);
                     } catch (error) {
                         showMessage(dashboardMessage, readableError(error));
@@ -240,7 +240,7 @@
                 removeButton.textContent = "Unblock";
                 removeButton.addEventListener("click", async () => {
                     try {
-                        await removeBlockedSite(currentUser.uid, domain);
+                        await removeBlockedSite(currentUser.email, domain);
                         showMessage(dashboardMessage, `${domain} is no longer blocked.`, true);
                     } catch (error) {
                         showMessage(dashboardMessage, readableError(error));
@@ -305,7 +305,7 @@
                 return;
             }
             try {
-                await addBlockedSite(currentUser.uid, domain, limitMinutes * 60);
+                await addBlockedSite(currentUser.email, domain, limitMinutes * 60);
                 document.getElementById("siteInput").value = "";
                 showMessage(dashboardMessage, `${domain} is blocked.`, true);
             } catch (error) {
@@ -325,8 +325,8 @@
             }
             document.getElementById("userEmail").textContent = user.email || "Signed in";
             try {
-                await ensureUserData(user.uid);
-                stopWatching = watchUserData(user.uid, render, (error) => showMessage(dashboardMessage, readableError(error)));
+                await ensureUserData(user.email, user.uid);
+                stopWatching = watchUserData(user.email, render, (error) => showMessage(dashboardMessage, readableError(error)));
             } catch (error) {
                 showMessage(dashboardMessage, readableError(error));
             }
