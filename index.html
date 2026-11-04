@@ -116,18 +116,18 @@
                     <div class="panel-head"><h2>Blocked websites</h2></div>
                     <form id="addSiteForm" class="add-form">
                         <input id="siteInput" type="text" placeholder="example.com" aria-label="Website domain" required>
-                        <input id="siteLimitInput" type="number" min="1" step="1" value="60" aria-label="Daily time limit in minutes" required>
+                        <input id="siteLimitInput" type="number" min="0" step="1" value="60" aria-label="Daily time limit in minutes; 0 blocks forever" required>
                         <button class="primary" type="submit">Block website</button>
                     </form>
                     <div id="dashboardMessage" class="message" role="status" aria-live="polite"></div>
                     <div class="table-wrap">
                         <table id="sitesTable" hidden>
-                            <thead><tr><th>Website</th><th>Time spent</th><th>Daily allowance</th><th></th></tr></thead>
+                            <thead><tr><th>Website</th><th>Time spent</th><th>Daily allowance (0 = block forever)</th><th></th></tr></thead>
                             <tbody id="sitesBody"></tbody>
                         </table>
                         <div id="emptyState" class="empty">No blocked websites yet. Add a domain above to get started.</div>
                     </div>
-                    <p class="footnote">Time spent is read from <code>timeOnWebsite</code>. Daily allowances are saved in <code>siteTimeLimits</code> as seconds.</p>
+                    <p class="footnote">Enter 0 minutes to block a site permanently. Positive allowances are daily and are saved in <code>siteTimeLimits</code> as seconds.</p><p class="footnote">Time spent is read from <code>timeOnWebsite</code>.</p>
                 </section>
             </section>
         </main>
@@ -214,19 +214,28 @@
                 limitForm.className = "limit-control";
                 const limitInput = document.createElement("input");
                 limitInput.type = "number";
-                limitInput.min = "1";
+                limitInput.min = "0";
                 limitInput.step = "1";
                 limitInput.required = true;
-                limitInput.value = Math.max(1, Math.round((Number(limits[domain]) || 3600) / 60));
-                limitInput.setAttribute("aria-label", `Daily time allowance in minutes for ${domain}`);
+                const storedLimit = limits[domain];
+                const limitSeconds = storedLimit === undefined || storedLimit === null ? 3600 : Number(storedLimit);
+                limitInput.value = Number.isFinite(limitSeconds) ? Math.max(0, Math.round(limitSeconds / 60)) : 60;
+                limitInput.setAttribute("aria-label", `Daily time allowance in minutes for ${domain}; 0 blocks forever`);
                 const unit = document.createElement("span");
-                unit.textContent = "min/day";
+                unit.textContent = "min/day; 0 = forever";
                 limitForm.append(limitInput, unit);
                 limitForm.addEventListener("submit", async (event) => {
                     event.preventDefault();
                     try {
-                        await setSiteTimeLimit(currentUser.email, domain, Number(limitInput.value) * 60);
-                        showMessage(dashboardMessage, `Daily allowance updated for ${domain}.`, true);
+                        const minutes = Number(limitInput.value);
+                        if (!Number.isInteger(minutes) || minutes < 0) {
+                            showMessage(dashboardMessage, "Enter 0 or a positive whole number of minutes.");
+                            return;
+                        }
+                        await setSiteTimeLimit(currentUser.email, domain, minutes * 60);
+                        showMessage(dashboardMessage, minutes === 0
+                            ? `${domain} will be blocked permanently.`
+                            : `Daily allowance updated for ${domain}.`, true);
                     } catch (error) {
                         showMessage(dashboardMessage, readableError(error));
                     }
@@ -300,14 +309,16 @@
                 showMessage(dashboardMessage, "Enter a valid website domain, such as example.com.");
                 return;
             }
-            if (!Number.isInteger(limitMinutes) || limitMinutes < 1) {
-                showMessage(dashboardMessage, "The daily allowance must be at least 1 minute.");
+            if (!Number.isInteger(limitMinutes) || limitMinutes < 0) {
+                showMessage(dashboardMessage, "Enter 0 or a positive whole number of minutes.");
                 return;
             }
             try {
                 await addBlockedSite(currentUser.email, domain, limitMinutes * 60);
                 document.getElementById("siteInput").value = "";
-                showMessage(dashboardMessage, `${domain} is blocked.`, true);
+                showMessage(dashboardMessage, limitMinutes === 0
+                    ? `${domain} is blocked permanently.`
+                    : `${domain} is blocked after ${limitMinutes} minutes each day.`, true);
             } catch (error) {
                 showMessage(dashboardMessage, readableError(error));
             }
