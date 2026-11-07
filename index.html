@@ -43,6 +43,20 @@
         .stat-label { color: var(--muted); font-size: 12px; font-weight: 650; }
         .stat-value { margin-top: 5px; font-size: 25px; font-weight: 750; letter-spacing: -.04em; }
         .panel { padding: 22px; }
+        .tab-bar { display: flex; gap: 8px; flex-wrap: wrap; margin: 10px 0 14px; }
+        .tab-button { border: 1px solid var(--line); border-radius: 999px; padding: 9px 15px; color: var(--ink); background: var(--card); font-weight: 700; }
+        .tab-button[aria-selected="true"] { color: white; border-color: var(--green); background: var(--green); }
+        .tab-panel { margin-bottom: 14px; }
+        .section-form { display: flex; flex-wrap: wrap; align-items: center; gap: 9px; padding: 14px; border: 1px solid var(--line); border-radius: 13px; background: #faf9f4; margin-bottom: 15px; }
+        .section-form input[type="text"] { flex: 1 1 210px; }
+        .section-form input[type="number"] { width: 120px; }
+        .section-form input[type="time"] { width: 145px; }
+        .item-list { display: grid; gap: 9px; }
+        .list-item { display: flex; justify-content: space-between; align-items: center; gap: 14px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 11px; background: white; }
+        .list-item.completed .item-title { color: var(--muted); text-decoration: line-through; }
+        .item-title { font-weight: 700; }
+        .item-meta { color: var(--muted); font-size: 12px; }
+        .item-actions { display: flex; align-items: center; gap: 8px; }
         .panel-head { display: flex; justify-content: space-between; align-items: center; gap: 15px; margin-bottom: 17px; }
         .add-form { display: grid; grid-template-columns: minmax(180px, 1fr) 175px auto; gap: 9px; padding: 14px; border: 1px solid var(--line); border-radius: 13px; background: #faf9f4; }
         .add-form input { background: white; }
@@ -112,8 +126,15 @@
                     <div class="card stat"><div class="stat-label">Sesame coins</div><div class="stat-value" id="coinCount">0</div></div>
                 </div>
 
-                <section class="card panel">
-                    <div class="panel-head"><h2>Blocked websites</h2></div>
+                <nav class="tab-bar" role="tablist" aria-label="Sesame settings">
+                    <button class="tab-button" type="button" role="tab" data-tab="limits" aria-selected="true">Limits</button>
+                    <button class="tab-button" type="button" role="tab" data-tab="productivity" aria-selected="false">Productivity</button>
+                    <button class="tab-button" type="button" role="tab" data-tab="todo" aria-selected="false">To-do</button>
+                    <button class="tab-button" type="button" role="tab" data-tab="sleep" aria-selected="false">Sleep mode</button>
+                </nav>
+
+                <section id="limitsPanel" class="card panel tab-panel" data-tab-panel="limits">
+                    <div class="panel-head"><h2>Blocked websites and daily limits</h2></div>
                     <form id="addSiteForm" class="add-form">
                         <input id="siteInput" type="text" placeholder="example.com" aria-label="Website domain" required>
                         <input id="siteLimitInput" type="number" min="0" step="1" value="60" aria-label="Daily time limit in minutes; 0 blocks forever" required>
@@ -122,12 +143,49 @@
                     <div id="dashboardMessage" class="message" role="status" aria-live="polite"></div>
                     <div class="table-wrap">
                         <table id="sitesTable" hidden>
-                            <thead><tr><th>Website</th><th>Time spent</th><th>Daily allowance (0 = block forever)</th><th></th></tr></thead>
+                            <thead><tr><th>Website</th><th>Time spent</th><th>Daily allowance (0 = block forever)</th></tr></thead>
                             <tbody id="sitesBody"></tbody>
                         </table>
                         <div id="emptyState" class="empty">No blocked websites yet. Add a domain above to get started.</div>
                     </div>
                     <p class="footnote">Enter 0 minutes to block a site permanently. Positive allowances are daily and are saved in <code>siteTimeLimits</code> as seconds.</p><p class="footnote">Time spent is read from <code>timeOnWebsite</code>.</p>
+                </section>
+
+                <section id="productivityPanel" class="card panel tab-panel" data-tab-panel="productivity" hidden>
+                    <div class="panel-head"><div><h2>Productivity sites</h2><p>Earn 1 coin for each focused minute on these sites.</p></div></div>
+                    <form id="productiveSiteForm" class="section-form">
+                        <input id="productiveSiteInput" type="text" placeholder="example.com" aria-label="Productivity website domain" required>
+                        <button class="primary" type="submit">Add productive site</button>
+                    </form>
+                    <div id="productiveSiteList" class="item-list"></div>
+                </section>
+
+                <section id="todoPanel" class="card panel tab-panel" data-tab-panel="todo" hidden>
+                    <div class="panel-head"><div><h2>To-do list</h2><p>Set a coin reward. Completing a task pays it once.</p></div></div>
+                    <form id="todoForm" class="section-form">
+                        <input id="todoTitleInput" type="text" placeholder="Task name" aria-label="Task name" required maxlength="120">
+                        <input id="todoRewardInput" type="number" min="1" step="1" value="1" aria-label="Coin reward" required>
+                        <span class="item-meta">coins</span>
+                        <button class="primary" type="submit">Add task</button>
+                    </form>
+                    <div id="todoList" class="item-list"></div>
+                </section>
+
+                <section id="sleepPanel" class="card panel tab-panel" data-tab-panel="sleep" hidden>
+                    <div class="panel-head"><div><h2>Sleep mode</h2><p>Permanent blocks stay configured until removed; a coin opens one minute when a sleep block is active. Schedules repeat daily in local time.</p></div></div>
+                    <form id="sleepSiteForm" class="section-form">
+                        <input id="sleepSiteInput" type="text" placeholder="example.com" aria-label="Permanently blocked website" required>
+                        <button class="primary" type="submit">Block permanently</button>
+                    </form>
+                    <div id="sleepSiteList" class="item-list"></div>
+                    <h2 style="margin:20px 0 12px">Daily scheduled blocks</h2>
+                    <form id="sleepScheduleForm" class="section-form">
+                        <input id="scheduleDomainInput" type="text" placeholder="example.com" aria-label="Scheduled website domain" required>
+                        <label for="scheduleStartInput">From</label><input id="scheduleStartInput" type="time" aria-label="Schedule start time" required>
+                        <label for="scheduleEndInput">Until</label><input id="scheduleEndInput" type="time" aria-label="Schedule end time" required>
+                        <button class="primary" type="submit">Add daily block</button>
+                    </form>
+                    <div id="sleepScheduleList" class="item-list"></div>
                 </section>
             </section>
         </main>
@@ -136,8 +194,10 @@
     <script type="module">
         import {
             observeAuth, createAccount, signIn, resetPassword, signOutUser,
-            ensureUserData, watchUserData, addBlockedSite, removeBlockedSite,
-            setSiteTimeLimit
+            ensureUserData, watchUserData, addBlockedSite,
+            addProductiveSite, removeProductiveSite,
+            addTodoTask, completeTodoTask, removeTodoTask, addSleepModeSite,
+            removeSleepModeSite, addSleepSchedule, removeSleepSchedule
         } from "./firestore.js";
 
         const authView = document.getElementById("authView");
@@ -187,6 +247,78 @@
             return `${minutes} min`;
         }
 
+        function renderSiteCollection(containerId, sites, onRemove, meta = () => "") {
+            const container = document.getElementById(containerId);
+            container.replaceChildren();
+            if (!sites.length) {
+                container.textContent = "Nothing added yet.";
+                return;
+            }
+            for (const site of sites) {
+                const row = document.createElement("div");
+                row.className = "list-item";
+                const label = document.createElement("span");
+                label.className = "item-title";
+                label.textContent = typeof site === "string" ? site : site.domain;
+                const details = document.createElement("span");
+                details.className = "item-meta";
+                details.textContent = meta(site);
+                const remove = document.createElement("button");
+                remove.type = "button";
+                remove.className = "subtle danger";
+                remove.textContent = "Remove";
+                remove.addEventListener("click", async () => {
+                    try { await onRemove(site); }
+                    catch (error) { showMessage(dashboardMessage, readableError(error)); }
+                });
+                const right = document.createElement("span");
+                right.className = "item-actions";
+                right.append(details, remove);
+                row.append(label, right);
+                container.append(row);
+            }
+        }
+
+        function renderTasks(tasks) {
+            const list = document.getElementById("todoList");
+            list.replaceChildren();
+            if (!tasks.length) { list.textContent = "Nothing added yet."; return; }
+            for (const task of tasks) {
+                const row = document.createElement("div");
+                row.className = `list-item${task.completed ? " completed" : ""}`;
+                const label = document.createElement("span");
+                label.className = "item-title";
+                label.textContent = task.title;
+                const actions = document.createElement("span");
+                actions.className = "item-actions";
+                const reward = document.createElement("span");
+                reward.className = "item-meta";
+                reward.textContent = `${Number(task.reward) || 0} coins`;
+                const complete = document.createElement("button");
+                complete.type = "button";
+                complete.className = "subtle";
+                complete.textContent = task.completed ? "Done" : "Complete";
+                complete.disabled = Boolean(task.completed);
+                complete.addEventListener("click", async () => {
+                    try {
+                        await completeTodoTask(currentUser.email, task.id);
+                        showMessage(dashboardMessage, `Task completed: +${Number(task.reward) || 0} coins.`, true);
+                    } catch (error) { showMessage(dashboardMessage, readableError(error)); }
+                });
+                const remove = document.createElement("button");
+                remove.type = "button";
+                remove.className = "subtle danger";
+                remove.textContent = "Remove";
+                remove.addEventListener("click", async () => {
+                    try { await removeTodoTask(currentUser.email, task.id); }
+                    catch (error) { showMessage(dashboardMessage, readableError(error)); }
+                });
+                actions.append(reward, complete, remove);
+                row.append(label, actions);
+                list.append(row);
+            }
+        }
+
         function render(data) {
             latestData = data || {};
             const sites = Array.isArray(latestData.blockedSites) ? latestData.blockedSites : [];
@@ -210,56 +342,25 @@
                 timeCell.textContent = formatDuration(time[domain]);
 
                 const limitCell = document.createElement("td");
-                const limitForm = document.createElement("form");
-                limitForm.className = "limit-control";
-                const limitInput = document.createElement("input");
-                limitInput.type = "number";
-                limitInput.min = "0";
-                limitInput.step = "1";
-                limitInput.required = true;
                 const storedLimit = limits[domain];
                 const limitSeconds = storedLimit === undefined || storedLimit === null ? 3600 : Number(storedLimit);
-                limitInput.value = Number.isFinite(limitSeconds) ? Math.max(0, Math.round(limitSeconds / 60)) : 60;
-                limitInput.setAttribute("aria-label", `Daily time allowance in minutes for ${domain}; 0 blocks forever`);
-                const unit = document.createElement("span");
-                unit.textContent = "min/day; 0 = forever";
-                limitForm.append(limitInput, unit);
-                limitForm.addEventListener("submit", async (event) => {
-                    event.preventDefault();
-                    try {
-                        const minutes = Number(limitInput.value);
-                        if (!Number.isInteger(minutes) || minutes < 0) {
-                            showMessage(dashboardMessage, "Enter 0 or a positive whole number of minutes.");
-                            return;
-                        }
-                        await setSiteTimeLimit(currentUser.email, domain, minutes * 60);
-                        showMessage(dashboardMessage, minutes === 0
-                            ? `${domain} will be blocked permanently.`
-                            : `Daily allowance updated for ${domain}.`, true);
-                    } catch (error) {
-                        showMessage(dashboardMessage, readableError(error));
-                    }
-                });
-                limitCell.append(limitForm);
-
-                const actionCell = document.createElement("td");
-                const removeButton = document.createElement("button");
-                removeButton.type = "button";
-                removeButton.className = "subtle danger";
-                removeButton.textContent = "Unblock";
-                removeButton.addEventListener("click", async () => {
-                    try {
-                        await removeBlockedSite(currentUser.email, domain);
-                        showMessage(dashboardMessage, `${domain} is no longer blocked.`, true);
-                    } catch (error) {
-                        showMessage(dashboardMessage, readableError(error));
-                    }
-                });
-                actionCell.append(removeButton);
-                row.append(siteCell, timeCell, limitCell, actionCell);
+                const allowanceMinutes = Number.isFinite(limitSeconds) ? Math.max(0, Math.round(limitSeconds / 60)) : 60;
+                limitCell.textContent = allowanceMinutes === 0 ? "Blocked forever" : `${allowanceMinutes} min/day`;
+                row.append(siteCell, timeCell, limitCell);
                 body.append(row);
             }
+
+            renderSiteCollection("productiveSiteList", latestData.productivitySites || [], (site) => removeProductiveSite(currentUser.email, site));
+            renderTasks(latestData.todoTasks || []);
+            renderSiteCollection("sleepSiteList", latestData.sleepModeSites || [], (site) => removeSleepModeSite(currentUser.email, site), () => "Blocks regardless of allowance");
+            renderSiteCollection("sleepScheduleList", latestData.sleepSchedules || [], (schedule) => removeSleepSchedule(currentUser.email, schedule.id), (schedule) => `${schedule.startTime}–${schedule.endTime}`);
         }
+
+        document.querySelectorAll("[data-tab]").forEach((button) => button.addEventListener("click", () => {
+            const activeTab = button.dataset.tab;
+            document.querySelectorAll("[data-tab]").forEach((tab) => tab.setAttribute("aria-selected", String(tab === button)));
+            document.querySelectorAll("[data-tab-panel]").forEach((panel) => { panel.hidden = panel.dataset.tabPanel !== activeTab; });
+        }));
 
         authForm.addEventListener("submit", async (event) => {
             event.preventDefault();
@@ -322,6 +423,57 @@
             } catch (error) {
                 showMessage(dashboardMessage, readableError(error));
             }
+        });
+
+
+        document.getElementById("productiveSiteForm").addEventListener("submit", async (event) => {
+            event.preventDefault();
+            const domain = normalizeDomain(document.getElementById("productiveSiteInput").value.trim());
+            if (!domain) { showMessage(dashboardMessage, "Enter a valid website domain."); return; }
+            try {
+                await addProductiveSite(currentUser.email, domain);
+                document.getElementById("productiveSiteInput").value = "";
+                showMessage(dashboardMessage, `${domain} will earn 1 coin per focused minute.`, true);
+            } catch (error) { showMessage(dashboardMessage, readableError(error)); }
+        });
+
+        document.getElementById("todoForm").addEventListener("submit", async (event) => {
+            event.preventDefault();
+            const title = document.getElementById("todoTitleInput").value.trim();
+            const reward = Number(document.getElementById("todoRewardInput").value);
+            if (!title || !Number.isSafeInteger(reward) || reward < 1) {
+                showMessage(dashboardMessage, "Enter a task and a positive whole-number coin reward."); return;
+            }
+            try {
+                await addTodoTask(currentUser.email, title, reward);
+                document.getElementById("todoTitleInput").value = "";
+                showMessage(dashboardMessage, "Task added.", true);
+            } catch (error) { showMessage(dashboardMessage, readableError(error)); }
+        });
+
+        document.getElementById("sleepSiteForm").addEventListener("submit", async (event) => {
+            event.preventDefault();
+            const domain = normalizeDomain(document.getElementById("sleepSiteInput").value.trim());
+            if (!domain) { showMessage(dashboardMessage, "Enter a valid website domain."); return; }
+            try {
+                await addSleepModeSite(currentUser.email, domain);
+                document.getElementById("sleepSiteInput").value = "";
+                showMessage(dashboardMessage, `${domain} is permanently blocked.`, true);
+            } catch (error) { showMessage(dashboardMessage, readableError(error)); }
+        });
+
+        document.getElementById("sleepScheduleForm").addEventListener("submit", async (event) => {
+            event.preventDefault();
+            const domain = normalizeDomain(document.getElementById("scheduleDomainInput").value.trim());
+            const startTime = document.getElementById("scheduleStartInput").value;
+            const endTime = document.getElementById("scheduleEndInput").value;
+            if (!domain || !startTime || !endTime || startTime === endTime) {
+                showMessage(dashboardMessage, "Enter a domain and two different times."); return;
+            }
+            try {
+                await addSleepSchedule(currentUser.email, { id: crypto.randomUUID(), domain, startTime, endTime });
+                showMessage(dashboardMessage, `Daily block added for ${domain}.`, true);
+            } catch (error) { showMessage(dashboardMessage, readableError(error)); }
         });
 
         observeAuth(async (user) => {

@@ -46,6 +46,12 @@ const defaults = {
     timeOnWebsite: {},
     siteTimeByDay: {},
     siteTimeLimits: {},
+    productivitySites: [],
+    productivityTimeByDay: {},
+    todoTasks: [],
+    sleepModeSites: [],
+    sleepSchedules: [],
+    siteUnlockTimeByDay: {},
     coins: 0,
     enabled: true
 };
@@ -103,22 +109,25 @@ export function watchUserData(email, onData, onError) {
 async function changeUserData(email, change) {
     const normalizedEmail = normalizeUserEmail(email);
     const ref = userDocument(normalizedEmail);
-    await runTransaction(db, async (transaction) => {
+    return runTransaction(db, async (transaction) => {
         const snapshot = await transaction.get(ref);
         const current = snapshot.exists()
             ? { ...defaults, ...snapshot.data() }
             : { ...defaults };
+        const updates = change(current) || {};
         transaction.set(ref, {
-            ...change(current),
+            ...updates,
             email: normalizedEmail,
             uid: normalizedEmail
         }, { merge: true });
+        return updates;
     });
 }
 
 export async function addBlockedSite(email, domain, limitSeconds) {
     await changeUserData(email, (data) => ({
         blockedSites: [...new Set([...(data.blockedSites || []), domain])],
+        productivitySites: (data.productivitySites || []).filter((site) => site !== domain),
         siteTimeLimits: {
             ...(data.siteTimeLimits || {}),
             [domain]: Number.isFinite(limitSeconds) ? limitSeconds : 3600
@@ -138,5 +147,75 @@ export async function setSiteTimeLimit(email, domain, limitSeconds) {
             ...(data.siteTimeLimits || {}),
             [domain]: limitSeconds
         }
+    }));
+}
+
+
+export async function addProductiveSite(email, domain) {
+    await changeUserData(email, (data) => {
+        if ((data.blockedSites || []).includes(domain)
+            || (data.sleepModeSites || []).includes(domain)
+            || (data.sleepSchedules || []).some((schedule) => schedule.domain === domain)) {
+            throw new Error("A blocked or sleep-mode site cannot also earn productivity coins.");
+        }
+        return { productivitySites: [...new Set([...(data.productivitySites || []), domain])] };
+    });
+}
+
+export async function removeProductiveSite(email, domain) {
+    await changeUserData(email, (data) => ({
+        productivitySites: (data.productivitySites || []).filter((site) => site !== domain)
+    }));
+}
+
+export async function addTodoTask(email, title, reward) {
+    const task = { id: crypto.randomUUID(), title: title.trim(), reward, completed: false };
+    await changeUserData(email, (data) => ({ todoTasks: [...(data.todoTasks || []), task] }));
+    return task;
+}
+
+export async function completeTodoTask(email, taskId) {
+    return changeUserData(email, (data) => {
+        const tasks = data.todoTasks || [];
+        const task = tasks.find((item) => item.id === taskId);
+        if (!task || task.completed) return {};
+        return {
+            todoTasks: tasks.map((item) => item.id === taskId
+                ? { ...item, completed: true, completedAt: new Date().toISOString() }
+                : item),
+            coins: (Number(data.coins) || 0) + Math.max(0, Number(task.reward) || 0)
+        };
+    });
+}
+
+export async function removeTodoTask(email, taskId) {
+    await changeUserData(email, (data) => ({
+        todoTasks: (data.todoTasks || []).filter((task) => task.id !== taskId)
+    }));
+}
+
+export async function addSleepModeSite(email, domain) {
+    await changeUserData(email, (data) => ({
+        sleepModeSites: [...new Set([...(data.sleepModeSites || []), domain])],
+        productivitySites: (data.productivitySites || []).filter((site) => site !== domain)
+    }));
+}
+
+export async function removeSleepModeSite(email, domain) {
+    await changeUserData(email, (data) => ({
+        sleepModeSites: (data.sleepModeSites || []).filter((site) => site !== domain)
+    }));
+}
+
+export async function addSleepSchedule(email, schedule) {
+    await changeUserData(email, (data) => ({
+        sleepSchedules: [...(data.sleepSchedules || []), schedule],
+        productivitySites: (data.productivitySites || []).filter((site) => site !== schedule.domain)
+    }));
+}
+
+export async function removeSleepSchedule(email, scheduleId) {
+    await changeUserData(email, (data) => ({
+        sleepSchedules: (data.sleepSchedules || []).filter((item) => item.id !== scheduleId)
     }));
 }
