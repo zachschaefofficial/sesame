@@ -49,6 +49,8 @@ const defaults = {
     productivitySites: [],
     productivityTimeByDay: {},
     todoTasks: [],
+    rewards: [],
+    coinPenalties: [],
     sleepModeSites: [],
     sleepSchedules: [],
     siteUnlockTimeByDay: {},
@@ -168,8 +170,16 @@ export async function removeProductiveSite(email, domain) {
     }));
 }
 
-export async function addTodoTask(email, title, reward) {
-    const task = { id: crypto.randomUUID(), title: title.trim(), reward, completed: false };
+export async function addTodoTask(email, title, description, reward, recurring = false) {
+    const task = {
+        id: crypto.randomUUID(),
+        title: title.trim(),
+        description: description.trim(),
+        reward,
+        recurring: Boolean(recurring),
+        completed: false,
+        createdAt: new Date().toISOString()
+    };
     await changeUserData(email, (data) => ({ todoTasks: [...(data.todoTasks || []), task] }));
     return task;
 }
@@ -178,12 +188,20 @@ export async function completeTodoTask(email, taskId) {
     return changeUserData(email, (data) => {
         const tasks = data.todoTasks || [];
         const task = tasks.find((item) => item.id === taskId);
-        if (!task || task.completed) return {};
+        if (!task) return {};
+        const now = new Date();
+        const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+        if (task.recurring && task.completedDate === today) return {};
+        if (!task.recurring && task.completed) return {};
+        const coins = (Number(data.coins) || 0) + Math.max(0, Number(task.reward) || 0);
+        if (!task.recurring) {
+            return { todoTasks: tasks.filter((item) => item.id !== taskId), coins };
+        }
         return {
             todoTasks: tasks.map((item) => item.id === taskId
-                ? { ...item, completed: true, completedAt: new Date().toISOString() }
+                ? { ...item, completedDate: today, completedAt: new Date().toISOString() }
                 : item),
-            coins: (Number(data.coins) || 0) + Math.max(0, Number(task.reward) || 0)
+            coins
         };
     });
 }
@@ -192,6 +210,46 @@ export async function removeTodoTask(email, taskId) {
     await changeUserData(email, (data) => ({
         todoTasks: (data.todoTasks || []).filter((task) => task.id !== taskId)
     }));
+}
+
+// Coin rewards: custom real-life reward menu, paid from the user's coin balance.
+export async function addCoinReward(email, title, description, cost) {
+    const reward = { id: crypto.randomUUID(), title: title.trim(), description: description.trim(), cost, createdAt: new Date().toISOString() };
+    await changeUserData(email, (data) => ({ rewards: [...(data.rewards || []), reward] }));
+    return reward;
+}
+
+export async function removeCoinReward(email, rewardId) {
+    await changeUserData(email, (data) => ({ rewards: (data.rewards || []).filter((item) => item.id !== rewardId) }));
+}
+
+export async function redeemCoinReward(email, rewardId) {
+    return changeUserData(email, (data) => {
+        const reward = (data.rewards || []).find((item) => item.id === rewardId);
+        const coins = Number(data.coins) || 0;
+        if (!reward) throw new Error("This reward is no longer available.");
+        if (coins < Number(reward.cost)) throw new Error("You need more coins to redeem this reward.");
+        return { coins: coins - Number(reward.cost) };
+    });
+}
+
+// Coin penalties: voluntary mistakes users can apply whenever they choose.
+export async function addCoinPenalty(email, title, description, amount) {
+    const penalty = { id: crypto.randomUUID(), title: title.trim(), description: description.trim(), amount, createdAt: new Date().toISOString() };
+    await changeUserData(email, (data) => ({ coinPenalties: [...(data.coinPenalties || []), penalty] }));
+    return penalty;
+}
+
+export async function removeCoinPenalty(email, penaltyId) {
+    await changeUserData(email, (data) => ({ coinPenalties: (data.coinPenalties || []).filter((item) => item.id !== penaltyId) }));
+}
+
+export async function redeemCoinPenalty(email, penaltyId) {
+    return changeUserData(email, (data) => {
+        const penalty = (data.coinPenalties || []).find((item) => item.id === penaltyId);
+        if (!penalty) throw new Error("This penalty is no longer available.");
+        return { coins: (Number(data.coins) || 0) - Math.max(0, Number(penalty.amount) || 0) };
+    });
 }
 
 export async function addSleepModeSite(email, domain) {

@@ -3,72 +3,109 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#f6f4ee">
+    <meta name="theme-color" content="#081426">
     <title>Sesame — Website limits</title>
     <style>
-        :root { color-scheme: light; --ink: #24261f; --muted: #72766a; --paper: #f6f4ee; --card: #fffefa; --green: #526d4d; --line: #e7e5dc; --red: #a44d3e; }
+        :root { color-scheme: dark; --ink: #e8efff; --muted: #9aaccb; --paper: #081426; --card: #101f35; --green: #5b8df7; --line: #263c5c; --red: #ff938e; --soft-blue: #142b4b; }
         * { box-sizing: border-box; }
-        body { margin: 0; background: var(--paper); color: var(--ink); font: 15px/1.5 ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
-        button, input { font: inherit; }
+        body { margin: 0; background: radial-gradient(ellipse at 50% -20%, #15345e 0, transparent 48%), var(--paper); color: var(--ink); font: 15px/1.5 ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+        button, input, textarea { font: inherit; }
         button { cursor: pointer; }
         .shell { max-width: 1020px; margin: auto; padding: 34px 24px 64px; }
         header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 38px; }
         .brand { display: flex; align-items: center; gap: 11px; font-weight: 750; font-size: 21px; letter-spacing: -.04em; }
-        .mark { width: 34px; height: 34px; display: grid; place-items: center; color: white; border-radius: 12px; background: var(--green); font-size: 19px; }
+        .mark { width: 34px; height: 34px; display: grid; place-items: center; color: white; border-radius: 12px; background: linear-gradient(145deg, #79a5ff, #3267d9); box-shadow: 0 6px 18px #386edf55; font-size: 19px; }
         .eyebrow { color: var(--green); font-size: 12px; font-weight: 750; letter-spacing: .12em; text-transform: uppercase; }
         h1 { font-size: clamp(30px, 5vw, 43px); letter-spacing: -.045em; line-height: 1.1; margin: 8px 0 10px; }
         h2 { font-size: 18px; letter-spacing: -.02em; margin: 0; }
         p { margin: 0; color: var(--muted); }
         .intro { margin-bottom: 25px; }
-        .card { background: var(--card); border: 1px solid var(--line); border-radius: 18px; box-shadow: 0 8px 30px #29291a08; }
+        .card { background: linear-gradient(150deg, #11233d, #0e1b30); border: 1px solid var(--line); border-radius: 18px; box-shadow: 0 12px 34px #0003; }
         .auth-card { max-width: 430px; margin: 30px auto; padding: 28px; }
         .auth-card h1 { font-size: 30px; }
         .field { display: grid; gap: 7px; margin-top: 17px; }
-        label { color: #55594f; font-size: 13px; font-weight: 650; }
-        input { min-width: 0; width: 100%; border: 1px solid #dcded3; border-radius: 10px; padding: 11px 12px; color: var(--ink); background: white; outline: none; }
-        input:focus { border-color: var(--green); box-shadow: 0 0 0 3px #526d4d1c; }
+        label { color: #b7c5df; font-size: 13px; font-weight: 650; }
+        input, textarea { min-width: 0; width: 100%; border: 1px solid #314866; border-radius: 10px; padding: 11px 12px; color: var(--ink); background: #0a1729; outline: none; }
+        input:focus, textarea:focus { border-color: var(--green); box-shadow: 0 0 0 3px #5b8df72b; }
+        textarea { min-height: 76px; resize: vertical; }
         button.primary { border: 0; border-radius: 10px; padding: 11px 16px; color: white; background: var(--green); font-weight: 700; }
-        button.primary:hover { background: #3f583b; }
-        button.subtle { border: 1px solid var(--line); border-radius: 9px; padding: 8px 11px; color: var(--ink); background: white; font-weight: 650; }
+        button.primary { box-shadow: 0 5px 15px #386edf2b; }
+        button.primary:hover { background: #4779e6; }
+        button.subtle { border: 1px solid var(--line); border-radius: 9px; padding: 8px 11px; color: var(--ink); background: #14243b; font-weight: 650; }
         button.danger { color: var(--red); }
         .auth-actions { display: flex; gap: 10px; margin-top: 22px; }
         .auth-actions button { flex: 1; }
         .text-button { border: 0; padding: 9px 0 0; color: var(--green); background: transparent; font-size: 13px; font-weight: 650; }
         .message { min-height: 22px; margin-top: 13px; color: var(--red); font-size: 13px; }
-        .message.good { color: var(--green); }
+        .message.good { color: #83d9b7; }
         .topline { display: flex; align-items: end; justify-content: space-between; gap: 18px; margin-bottom: 22px; }
         .userline { display: flex; align-items: center; gap: 14px; color: var(--muted); font-size: 13px; }
         .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 13px; margin: 24px 0; }
-        .stat { padding: 18px 20px; }
+        .stat { padding: 18px 20px; position: relative; overflow: hidden; }
+        .stat::after { position: absolute; width: 85px; height: 85px; right: -30px; top: -38px; border: 1px solid #7da6ff22; border-radius: 50%; box-shadow: 0 0 0 12px #7da6ff08; content: ""; }
         .stat-label { color: var(--muted); font-size: 12px; font-weight: 650; }
         .stat-value { margin-top: 5px; font-size: 25px; font-weight: 750; letter-spacing: -.04em; }
-        .panel { padding: 22px; }
+        .panel { padding: 24px; }
         .tab-bar { display: flex; gap: 8px; flex-wrap: wrap; margin: 10px 0 14px; }
-        .tab-button { border: 1px solid var(--line); border-radius: 999px; padding: 9px 15px; color: var(--ink); background: var(--card); font-weight: 700; }
+        .tab-button { border: 1px solid var(--line); border-radius: 999px; padding: 9px 15px; color: #bac9e3; background: #101f35; font-weight: 700; transition: .18s ease; }
+        .tab-button:hover { border-color: #5779af; background: #142946; }
         .tab-button[aria-selected="true"] { color: white; border-color: var(--green); background: var(--green); }
         .tab-panel { margin-bottom: 14px; }
-        .section-form { display: flex; flex-wrap: wrap; align-items: center; gap: 9px; padding: 14px; border: 1px solid var(--line); border-radius: 13px; background: #faf9f4; margin-bottom: 15px; }
+        .section-form { display: flex; flex-wrap: wrap; align-items: center; gap: 9px; padding: 14px; border: 1px solid var(--line); border-radius: 13px; background: #0c1a2d; margin-bottom: 17px; }
+        .task-form, .economy-form { display: grid; grid-template-columns: minmax(180px, 1fr) 140px auto; gap: 10px; padding: 14px; border: 1px solid var(--line); border-radius: 13px; background: #0c1a2d; margin-bottom: 17px; }
+        .task-form textarea, .economy-form textarea { grid-column: 1 / -1; }
+        .form-wide { grid-column: 1 / -1; }
+        .check-field { display: inline-flex; align-items: center; gap: 9px; color: #b7c5df; font-size: 13px; font-weight: 650; }
+        .check-field input { width: 17px; height: 17px; accent-color: var(--green); }
+        .task-copy { display: grid; gap: 4px; min-width: 0; }
+        .task-description, .economy-description { color: var(--muted); font-size: 13px; overflow-wrap: anywhere; }
+        .task-tags { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 3px; }
+        .coin-card { align-items: flex-start; }
+        .coin-card .task-copy { flex: 1; }
         .section-form input[type="text"] { flex: 1 1 210px; }
         .section-form input[type="number"] { width: 120px; }
         .section-form input[type="time"] { width: 145px; }
         .item-list { display: grid; gap: 9px; }
-        .list-item { display: flex; justify-content: space-between; align-items: center; gap: 14px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 11px; background: white; }
+        .list-item { display: flex; justify-content: space-between; align-items: center; gap: 14px; padding: 14px 16px; border: 1px solid #293f5f; border-radius: 13px; background: linear-gradient(130deg, #142742, #102038); box-shadow: 0 5px 15px #0002; }
+        .list-item:not(.task-card) { transition: border-color .18s ease, transform .18s ease; }
+        .list-item:not(.task-card):hover { border-color: #557bb8; transform: translateY(-1px); }
         .list-item.completed .item-title { color: var(--muted); text-decoration: line-through; }
         .item-title { font-weight: 700; }
-        .item-meta { color: var(--muted); font-size: 12px; }
+        .item-meta { color: #9fb1d1; font-size: 12px; }
         .item-actions { display: flex; align-items: center; gap: 8px; }
         .panel-head { display: flex; justify-content: space-between; align-items: center; gap: 15px; margin-bottom: 17px; }
-        .add-form { display: grid; grid-template-columns: minmax(180px, 1fr) 175px auto; gap: 9px; padding: 14px; border: 1px solid var(--line); border-radius: 13px; background: #faf9f4; }
-        .add-form input { background: white; }
+        .add-form { display: grid; grid-template-columns: minmax(180px, 1fr) 175px auto; gap: 9px; padding: 14px; border: 1px solid var(--line); border-radius: 13px; background: #0c1a2d; }
         .table-wrap { overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; margin-top: 14px; text-align: left; }
-        th { padding: 11px 10px; color: var(--muted); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; font-weight: 750; }
+        th { padding: 11px 10px; color: #9fb1d1; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; font-weight: 750; }
         td { padding: 14px 10px; border-top: 1px solid var(--line); vertical-align: middle; }
         td.site { font-weight: 700; }
         .limit-control { display: flex; align-items: center; gap: 8px; max-width: 205px; }
         .limit-control input { width: 82px; padding: 8px; }
         .limit-control span { color: var(--muted); font-size: 12px; }
         .empty { padding: 30px 12px; text-align: center; color: var(--muted); border-top: 1px solid var(--line); }
+        .planner-hero { display: flex; align-items: center; justify-content: space-between; gap: 22px; margin: 0 0 18px; padding: 22px; border: 1px solid #385b8c; border-radius: 17px; background: radial-gradient(circle at 100% 0, #4a74bb66, transparent 36%), linear-gradient(125deg, #18365e, #12233c); box-shadow: 0 12px 28px #0003; }
+        .planner-copy { display: flex; align-items: center; gap: 15px; }
+        .planner-icon { width: 48px; height: 48px; display: grid; flex: none; place-items: center; border: 1px solid #a8c3ff55; border-radius: 15px; color: #dce8ff; background: #80aaff24; font-size: 22px; }
+        .planner-hero h3 { margin: 0 0 3px; font-size: 17px; letter-spacing: -.025em; }
+        .planner-hero p { max-width: 390px; font-size: 13px; }
+        .hero-metrics { display: flex; gap: 22px; }
+        .hero-stat { min-width: 76px; text-align: right; }
+        .hero-stat strong { display: block; color: #f1f5ff; font-size: 23px; line-height: 1.1; }
+        .hero-stat span { color: #b3c5e5; font-size: 11px; }
+        .board-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 20px 0 11px; }
+        .board-heading h3 { margin: 0; font-size: 14px; }
+        .board-progress { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 12px; }
+        .progress-track { width: 92px; height: 6px; overflow: hidden; border-radius: 99px; background: #243854; }
+        .progress-fill { width: 0; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #5b8df7, #86b4ff); transition: width .25s ease; }
+        .task-card { align-items: center; padding: 15px 16px; }
+        .task-main { display: flex; align-items: center; min-width: 0; gap: 12px; }
+        .task-check { width: 20px; height: 20px; display: grid; flex: none; place-items: center; border: 1px solid #54729d; border-radius: 7px; color: #94b5ff; background: #1c3557; font-size: 12px; }
+        .completed .task-check { color: #a6f0d1; border-color: #397b6e; background: #1a4949; }
+        .task-status { padding: 4px 8px; border: 1px solid #345581; border-radius: 999px; color: #c2d5ff; background: #1d3b66; font-size: 10px; font-weight: 750; letter-spacing: .04em; text-transform: uppercase; }
+        .completed .task-status { color: #a6f0d1; border-color: #32685e; background: #153d3b; }
+        .reward-pill { padding: 5px 9px; border: 1px solid #54472d; border-radius: 999px; color: #f2d78c; background: #322b1d; font-size: 11px; font-weight: 750; white-space: nowrap; }
+        .empty-card { padding: 22px 16px; border: 1px dashed #344b6d; border-radius: 13px; color: var(--muted); background: #0c1a2d; text-align: center; }
         .footnote { margin-top: 15px; font-size: 12px; }
         [hidden] { display: none !important; }
         @media (max-width: 650px) {
@@ -79,9 +116,16 @@
             .stat { padding: 13px; }
             .stat-value { font-size: 20px; }
             .panel { padding: 15px; }
+            .planner-hero { align-items: flex-start; flex-direction: column; padding: 17px; }
+            .hero-metrics { width: 100%; justify-content: space-between; padding-left: 62px; }
+            .hero-stat { text-align: left; }
+            .list-item { align-items: flex-start; flex-direction: column; }
+            .item-actions { width: 100%; justify-content: flex-end; flex-wrap: wrap; }
             .add-form { grid-template-columns: 1fr 1fr; }
             .add-form input:first-child { grid-column: 1 / -1; }
             .add-form button { grid-column: 1 / -1; }
+            .task-form, .economy-form { grid-template-columns: minmax(0, 1fr) minmax(90px, .7fr); }
+            .task-form button, .economy-form button { grid-column: 1 / -1; }
             table { min-width: 620px; }
         }
     </style>
@@ -130,6 +174,8 @@
                     <button class="tab-button" type="button" role="tab" data-tab="limits" aria-selected="true">Limits</button>
                     <button class="tab-button" type="button" role="tab" data-tab="productivity" aria-selected="false">Productivity</button>
                     <button class="tab-button" type="button" role="tab" data-tab="todo" aria-selected="false">To-do</button>
+                    <button class="tab-button" type="button" role="tab" data-tab="rewards" aria-selected="false">Rewards</button>
+                    <button class="tab-button" type="button" role="tab" data-tab="penalties" aria-selected="false">Mistakes</button>
                     <button class="tab-button" type="button" role="tab" data-tab="sleep" aria-selected="false">Sleep mode</button>
                 </nav>
 
@@ -153,6 +199,10 @@
 
                 <section id="productivityPanel" class="card panel tab-panel" data-tab-panel="productivity" hidden>
                     <div class="panel-head"><div><h2>Productivity sites</h2><p>Earn 1 coin for each focused minute on these sites.</p></div></div>
+                    <div class="planner-hero">
+                        <div class="planner-copy"><div class="planner-icon" aria-hidden="true">◷</div><div><h3>Today's focus</h3><p>Time on these sites builds coins while you stay on task.</p></div></div>
+                        <div class="hero-metrics"><div class="hero-stat"><strong id="productiveToday">0m</strong><span>focused today</span></div><div class="hero-stat"><strong id="focusCoinsToday">0</strong><span>coins earned</span></div></div>
+                    </div>
                     <form id="productiveSiteForm" class="section-form">
                         <input id="productiveSiteInput" type="text" placeholder="example.com" aria-label="Productivity website domain" required>
                         <button class="primary" type="submit">Add productive site</button>
@@ -161,14 +211,50 @@
                 </section>
 
                 <section id="todoPanel" class="card panel tab-panel" data-tab-panel="todo" hidden>
-                    <div class="panel-head"><div><h2>To-do list</h2><p>Set a coin reward. Completing a task pays it once.</p></div></div>
-                    <form id="todoForm" class="section-form">
+                    <div class="panel-head"><div><h2>To-do list</h2><p>Plan your day, add context, and earn coins as you complete tasks.</p></div></div>
+                    <div class="planner-hero">
+                        <div class="planner-copy"><div class="planner-icon" aria-hidden="true">✓</div><div><h3>Your task plan</h3><p>One-time tasks disappear when completed. Daily tasks reset each day and can earn their reward again.</p></div></div>
+                        <div class="hero-metrics"><div class="hero-stat"><strong id="todoOpenCount">0</strong><span>up next</span></div><div class="hero-stat"><strong id="todoCompleteCount">0</strong><span>completed</span></div></div>
+                    </div>
+                    <form id="todoForm" class="task-form">
                         <input id="todoTitleInput" type="text" placeholder="Task name" aria-label="Task name" required maxlength="120">
-                        <input id="todoRewardInput" type="number" min="1" step="1" value="1" aria-label="Coin reward" required>
-                        <span class="item-meta">coins</span>
+                        <input id="todoRewardInput" type="number" min="1" step="1" value="1" aria-label="Coin reward" required placeholder="Coins">
                         <button class="primary" type="submit">Add task</button>
+                        <textarea id="todoDescriptionInput" class="form-wide" maxlength="500" placeholder="Add details, notes, or steps (optional)" aria-label="Task details"></textarea>
+                        <label class="check-field form-wide"><input id="todoRecurringInput" type="checkbox"> Repeat every day</label>
                     </form>
+                    <div class="board-heading"><h3>Task board</h3><div class="board-progress"><span id="todoProgressLabel">0% complete</span><div class="progress-track"><div id="todoProgressFill" class="progress-fill"></div></div></div></div>
                     <div id="todoList" class="item-list"></div>
+                </section>
+
+                <section id="rewardsPanel" class="card panel tab-panel" data-tab-panel="rewards" hidden>
+                    <div class="panel-head"><div><h2>Real-life rewards</h2><p>Create rewards for yourself and spend coins when you claim them.</p></div></div>
+                    <div class="planner-hero">
+                        <div class="planner-copy"><div class="planner-icon" aria-hidden="true">✦</div><div><h3>Make your coins count</h3><p>Set your own goals, from a favorite snack to a day out.</p></div></div>
+                        <div class="hero-metrics"><div class="hero-stat"><strong id="rewardCoinBalance">0</strong><span>coins available</span></div></div>
+                    </div>
+                    <form id="rewardForm" class="economy-form">
+                        <input id="rewardTitleInput" type="text" placeholder="Reward name" aria-label="Reward name" required maxlength="120">
+                        <input id="rewardCostInput" type="number" min="1" step="1" placeholder="Coin cost" aria-label="Coin cost" required>
+                        <button class="primary" type="submit">Add reward</button>
+                        <textarea id="rewardDescriptionInput" class="form-wide" maxlength="300" placeholder="What will you treat yourself to? (optional)" aria-label="Reward details"></textarea>
+                    </form>
+                    <div id="rewardList" class="item-list"></div>
+                </section>
+
+                <section id="penaltiesPanel" class="card panel tab-panel" data-tab-panel="penalties" hidden>
+                    <div class="panel-head"><div><h2>Mistakes and coin penalties</h2><p>Set a voluntary consequence for a habit you want to keep. Apply it any time.</p></div></div>
+                    <div class="planner-hero">
+                        <div class="planner-copy"><div class="planner-icon" aria-hidden="true">↘</div><div><h3>Your own accountability rules</h3><p>Penalties are optional, user-created, and subtract coins immediately when applied.</p></div></div>
+                        <div class="hero-metrics"><div class="hero-stat"><strong id="penaltyCoinBalance">0</strong><span>current coins</span></div></div>
+                    </div>
+                    <form id="penaltyForm" class="economy-form">
+                        <input id="penaltyTitleInput" type="text" placeholder="Mistake, e.g. skipped workout" aria-label="Penalty name" required maxlength="120">
+                        <input id="penaltyAmountInput" type="number" min="1" step="1" placeholder="Coins to deduct" aria-label="Coins to deduct" required>
+                        <button class="primary" type="submit">Add penalty</button>
+                        <textarea id="penaltyDescriptionInput" class="form-wide" maxlength="300" placeholder="Add a note (optional)" aria-label="Penalty details"></textarea>
+                    </form>
+                    <div id="penaltyList" class="item-list"></div>
                 </section>
 
                 <section id="sleepPanel" class="card panel tab-panel" data-tab-panel="sleep" hidden>
@@ -197,7 +283,9 @@
             ensureUserData, watchUserData, addBlockedSite,
             addProductiveSite, removeProductiveSite,
             addTodoTask, completeTodoTask, removeTodoTask, addSleepModeSite,
-            removeSleepModeSite, addSleepSchedule, removeSleepSchedule
+            removeSleepModeSite, addSleepSchedule, removeSleepSchedule,
+            addCoinReward, removeCoinReward, redeemCoinReward,
+            addCoinPenalty, removeCoinPenalty, redeemCoinPenalty
         } from "./firestore.js";
 
         const authView = document.getElementById("authView");
@@ -247,11 +335,18 @@
             return `${minutes} min`;
         }
 
+        function localDateKey(date = new Date()) {
+            return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+        }
+
         function renderSiteCollection(containerId, sites, onRemove, meta = () => "") {
             const container = document.getElementById(containerId);
             container.replaceChildren();
             if (!sites.length) {
-                container.textContent = "Nothing added yet.";
+                const empty = document.createElement("div");
+                empty.className = "empty-card";
+                empty.textContent = "Nothing added yet.";
+                container.append(empty);
                 return;
             }
             for (const site of sites) {
@@ -282,23 +377,67 @@
         function renderTasks(tasks) {
             const list = document.getElementById("todoList");
             list.replaceChildren();
-            if (!tasks.length) { list.textContent = "Nothing added yet."; return; }
+            const today = localDateKey();
+            const isCompleteToday = (task) => task.recurring
+                ? task.completedDate === today
+                : Boolean(task.completed);
+            const completeCount = tasks.filter(isCompleteToday).length;
+            const openCount = tasks.length - completeCount;
+            const progress = tasks.length ? Math.round(completeCount / tasks.length * 100) : 0;
+            document.getElementById("todoOpenCount").textContent = openCount;
+            document.getElementById("todoCompleteCount").textContent = completeCount;
+            document.getElementById("todoProgressLabel").textContent = `${progress}% complete`;
+            document.getElementById("todoProgressFill").style.width = `${progress}%`;
+            if (!tasks.length) {
+                const empty = document.createElement("div");
+                empty.className = "empty-card";
+                empty.textContent = "Your list is clear. Add a task to plan your next win.";
+                list.append(empty);
+                return;
+            }
             for (const task of tasks) {
+                const completedToday = isCompleteToday(task);
                 const row = document.createElement("div");
-                row.className = `list-item${task.completed ? " completed" : ""}`;
+                row.className = `list-item task-card${completedToday ? " completed" : ""}`;
                 const label = document.createElement("span");
                 label.className = "item-title";
                 label.textContent = task.title;
+                const copy = document.createElement("span");
+                copy.className = "task-copy";
+                copy.append(label);
+                if (task.description) {
+                    const description = document.createElement("span");
+                    description.className = "task-description";
+                    description.textContent = task.description;
+                    copy.append(description);
+                }
+                const tags = document.createElement("span");
+                tags.className = "task-tags";
+                const kind = document.createElement("span");
+                kind.className = "task-status";
+                kind.textContent = task.recurring ? "Daily" : "One-time";
+                tags.append(kind);
+                copy.append(tags);
+                const check = document.createElement("span");
+                check.className = "task-check";
+                check.setAttribute("aria-hidden", "true");
+                check.textContent = completedToday ? "✓" : "";
+                const main = document.createElement("span");
+                main.className = "task-main";
+                main.append(check, copy);
                 const actions = document.createElement("span");
                 actions.className = "item-actions";
                 const reward = document.createElement("span");
-                reward.className = "item-meta";
+                reward.className = "reward-pill";
                 reward.textContent = `${Number(task.reward) || 0} coins`;
+                const state = document.createElement("span");
+                state.className = "task-status";
+                state.textContent = completedToday ? "Done today" : "Up next";
                 const complete = document.createElement("button");
                 complete.type = "button";
                 complete.className = "subtle";
-                complete.textContent = task.completed ? "Done" : "Complete";
-                complete.disabled = Boolean(task.completed);
+                complete.textContent = completedToday ? "Done today" : task.recurring ? "Complete today" : "Complete";
+                complete.disabled = completedToday;
                 complete.addEventListener("click", async () => {
                     try {
                         await completeTodoTask(currentUser.email, task.id);
@@ -313,8 +452,74 @@
                     try { await removeTodoTask(currentUser.email, task.id); }
                     catch (error) { showMessage(dashboardMessage, readableError(error)); }
                 });
-                actions.append(reward, complete, remove);
-                row.append(label, actions);
+                actions.append(state, reward, complete, remove);
+                row.append(main, actions);
+                list.append(row);
+            }
+        }
+
+        function renderCoinItems(containerId, items, type) {
+            const list = document.getElementById(containerId);
+            list.replaceChildren();
+            if (!items.length) {
+                const empty = document.createElement("div");
+                empty.className = "empty-card";
+                empty.textContent = type === "reward"
+                    ? "No rewards yet. Add something you would like to earn."
+                    : "No penalties yet. Add an accountability rule if you want one.";
+                list.append(empty);
+                return;
+            }
+            const balance = Number(latestData?.coins) || 0;
+            for (const item of items) {
+                const row = document.createElement("div");
+                row.className = "list-item coin-card";
+                const copy = document.createElement("span");
+                copy.className = "task-copy";
+                const title = document.createElement("span");
+                title.className = "item-title";
+                title.textContent = item.title;
+                copy.append(title);
+                if (item.description) {
+                    const description = document.createElement("span");
+                    description.className = "economy-description";
+                    description.textContent = item.description;
+                    copy.append(description);
+                }
+                const actions = document.createElement("span");
+                actions.className = "item-actions";
+                const amount = document.createElement("span");
+                amount.className = "reward-pill";
+                const value = Math.max(0, Number(type === "reward" ? item.cost : item.amount) || 0);
+                amount.textContent = type === "reward" ? `${value} coins` : `−${value} coins`;
+                const redeem = document.createElement("button");
+                redeem.type = "button";
+                redeem.className = "subtle";
+                redeem.textContent = type === "reward" ? "Redeem" : "Apply penalty";
+                redeem.disabled = type === "reward" && balance < value;
+                redeem.addEventListener("click", async () => {
+                    try {
+                        if (type === "reward") {
+                            await redeemCoinReward(currentUser.email, item.id);
+                            showMessage(dashboardMessage, `Reward redeemed: −${value} coins.`, true);
+                        } else {
+                            await redeemCoinPenalty(currentUser.email, item.id);
+                            showMessage(dashboardMessage, `Penalty applied: −${value} coins.`, true);
+                        }
+                    } catch (error) { showMessage(dashboardMessage, readableError(error)); }
+                });
+                const remove = document.createElement("button");
+                remove.type = "button";
+                remove.className = "subtle danger";
+                remove.textContent = "Remove";
+                remove.addEventListener("click", async () => {
+                    try {
+                        if (type === "reward") await removeCoinReward(currentUser.email, item.id);
+                        else await removeCoinPenalty(currentUser.email, item.id);
+                    } catch (error) { showMessage(dashboardMessage, readableError(error)); }
+                });
+                actions.append(amount, redeem, remove);
+                row.append(copy, actions);
                 list.append(row);
             }
         }
@@ -324,9 +529,18 @@
             const sites = Array.isArray(latestData.blockedSites) ? latestData.blockedSites : [];
             const time = latestData.timeOnWebsite || {};
             const limits = latestData.siteTimeLimits || {};
+            const today = localDateKey();
+            const todayPurchases = latestData.siteUnlockTimeByDay?.[today] || {};
+            const focusToday = latestData.productivityTimeByDay?.[today] || {};
+            const focusSeconds = Object.values(focusToday).reduce((sum, value) => sum + (Number(value) || 0), 0);
+            const focusCoins = Object.values(focusToday).reduce((sum, value) => sum + Math.floor((Number(value) || 0) / 60), 0);
+            document.getElementById("productiveToday").textContent = formatDuration(focusSeconds);
+            document.getElementById("focusCoinsToday").textContent = focusCoins;
             document.getElementById("blockedCount").textContent = sites.length;
             document.getElementById("trackedTime").textContent = formatDuration(Object.values(time).reduce((sum, value) => sum + (Number(value) || 0), 0));
             document.getElementById("coinCount").textContent = Number(latestData.coins) || 0;
+            document.getElementById("rewardCoinBalance").textContent = Number(latestData.coins) || 0;
+            document.getElementById("penaltyCoinBalance").textContent = Number(latestData.coins) || 0;
 
             const body = document.getElementById("sitesBody");
             body.replaceChildren();
@@ -344,14 +558,20 @@
                 const limitCell = document.createElement("td");
                 const storedLimit = limits[domain];
                 const limitSeconds = storedLimit === undefined || storedLimit === null ? 3600 : Number(storedLimit);
-                const allowanceMinutes = Number.isFinite(limitSeconds) ? Math.max(0, Math.round(limitSeconds / 60)) : 60;
-                limitCell.textContent = allowanceMinutes === 0 ? "Blocked forever" : `${allowanceMinutes} min/day`;
+                const purchasedSeconds = Number(todayPurchases[domain]) || 0;
+                const allowanceMinutes = Number.isFinite(limitSeconds) ? Math.max(0, Math.round((limitSeconds + purchasedSeconds) / 60)) : 60;
+                if (allowanceMinutes === 0) limitCell.textContent = "Blocked forever";
+                else if (purchasedSeconds > 0 && limitSeconds <= 0) limitCell.textContent = `${allowanceMinutes} min today · coin time`;
+                else if (purchasedSeconds > 0) limitCell.textContent = `${allowanceMinutes} min today · +${Math.round(purchasedSeconds / 60)} coin min`;
+                else limitCell.textContent = `${allowanceMinutes} min/day`;
                 row.append(siteCell, timeCell, limitCell);
                 body.append(row);
             }
 
-            renderSiteCollection("productiveSiteList", latestData.productivitySites || [], (site) => removeProductiveSite(currentUser.email, site));
+            renderSiteCollection("productiveSiteList", latestData.productivitySites || [], (site) => removeProductiveSite(currentUser.email, site), (site) => `${formatDuration(focusToday[site] || 0)} focused today`);
             renderTasks(latestData.todoTasks || []);
+            renderCoinItems("rewardList", latestData.rewards || [], "reward");
+            renderCoinItems("penaltyList", latestData.coinPenalties || [], "penalty");
             renderSiteCollection("sleepSiteList", latestData.sleepModeSites || [], (site) => removeSleepModeSite(currentUser.email, site), () => "Blocks regardless of allowance");
             renderSiteCollection("sleepScheduleList", latestData.sleepSchedules || [], (schedule) => removeSleepSchedule(currentUser.email, schedule.id), (schedule) => `${schedule.startTime}–${schedule.endTime}`);
         }
@@ -440,14 +660,48 @@
         document.getElementById("todoForm").addEventListener("submit", async (event) => {
             event.preventDefault();
             const title = document.getElementById("todoTitleInput").value.trim();
+            const description = document.getElementById("todoDescriptionInput").value.trim();
             const reward = Number(document.getElementById("todoRewardInput").value);
+            const recurring = document.getElementById("todoRecurringInput").checked;
             if (!title || !Number.isSafeInteger(reward) || reward < 1) {
                 showMessage(dashboardMessage, "Enter a task and a positive whole-number coin reward."); return;
             }
             try {
-                await addTodoTask(currentUser.email, title, reward);
+                await addTodoTask(currentUser.email, title, description, reward, recurring);
                 document.getElementById("todoTitleInput").value = "";
-                showMessage(dashboardMessage, "Task added.", true);
+                document.getElementById("todoDescriptionInput").value = "";
+                document.getElementById("todoRecurringInput").checked = false;
+                showMessage(dashboardMessage, recurring ? "Daily task added." : "One-time task added.", true);
+            } catch (error) { showMessage(dashboardMessage, readableError(error)); }
+        });
+
+        document.getElementById("rewardForm").addEventListener("submit", async (event) => {
+            event.preventDefault();
+            const title = document.getElementById("rewardTitleInput").value.trim();
+            const description = document.getElementById("rewardDescriptionInput").value.trim();
+            const cost = Number(document.getElementById("rewardCostInput").value);
+            if (!title || !Number.isSafeInteger(cost) || cost < 1) {
+                showMessage(dashboardMessage, "Enter a reward and a positive whole-number coin cost."); return;
+            }
+            try {
+                await addCoinReward(currentUser.email, title, description, cost);
+                document.getElementById("rewardForm").reset();
+                showMessage(dashboardMessage, "Reward added to your list.", true);
+            } catch (error) { showMessage(dashboardMessage, readableError(error)); }
+        });
+
+        document.getElementById("penaltyForm").addEventListener("submit", async (event) => {
+            event.preventDefault();
+            const title = document.getElementById("penaltyTitleInput").value.trim();
+            const description = document.getElementById("penaltyDescriptionInput").value.trim();
+            const amount = Number(document.getElementById("penaltyAmountInput").value);
+            if (!title || !Number.isSafeInteger(amount) || amount < 1) {
+                showMessage(dashboardMessage, "Enter a penalty and a positive whole-number coin amount."); return;
+            }
+            try {
+                await addCoinPenalty(currentUser.email, title, description, amount);
+                document.getElementById("penaltyForm").reset();
+                showMessage(dashboardMessage, "Penalty added. You can apply it whenever you choose.", true);
             } catch (error) { showMessage(dashboardMessage, readableError(error)); }
         });
 
@@ -494,6 +748,11 @@
                 showMessage(dashboardMessage, readableError(error));
             }
         });
+
+        // Refresh task completion labels after local midnight for open dashboards.
+        setInterval(() => {
+            if (currentUser && latestData) render(latestData);
+        }, 60_000);
     </script>
 </body>
 </html>
