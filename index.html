@@ -108,6 +108,45 @@
         .empty-card { padding: 22px 16px; border: 1px dashed #344b6d; border-radius: 13px; color: var(--muted); background: #0c1a2d; text-align: center; }
         .footnote { margin-top: 15px; font-size: 12px; }
         [hidden] { display: none !important; }
+        /* Refined dashboard styling */
+        :root { --paper:#07111f; --card:#0e1c30; --line:#223958; --green:#6b9cff; --muted:#9fb1cf; }
+        body { min-height:100vh; background:radial-gradient(ellipse at 50% -15%, #1d4478 0, transparent 45%), linear-gradient(180deg,#091629 0%,#07111f 58%); }
+        .shell { max-width:1160px; padding-top:40px; }
+        header { margin-bottom:48px; }
+        .brand { font-size:23px; letter-spacing:-.05em; }
+        .mark { width:40px; height:40px; border-radius:14px; font-size:21px; }
+        .eyebrow { letter-spacing:.14em; }
+        h1 { font-weight:760; }
+        .topline { margin-bottom:28px; }
+        .topline > div:first-child p { font-size:16px; }
+        .card { border-color:#294364; background:linear-gradient(145deg,#11243d,#0c192b 78%); box-shadow:0 20px 55px #0004, inset 0 1px #ffffff08; }
+        .stat { min-height:108px; padding:21px 23px; }
+        .stat-value { font-size:28px; }
+        .tab-bar { gap:9px; margin:12px 0 17px; padding-bottom:3px; }
+        .tab-button { padding:10px 17px; border-color:transparent; background:#0e1c30; }
+        .tab-button[aria-selected="true"] { box-shadow:0 6px 18px #4c82ee38; }
+        .panel { padding:28px; border-radius:20px; }
+        .panel-head { margin-bottom:21px; }
+        .panel-head p { margin-top:4px; }
+        .add-form, .task-form, .economy-form, .section-form { padding:17px; border-radius:15px; background:#091729; }
+        input, textarea { border-color:#2a4263; background:#081526; }
+        input:hover, textarea:hover { border-color:#47658c; }
+        button.primary { background:linear-gradient(135deg,#6b9cff,#477de9); }
+        button.primary:hover { background:linear-gradient(135deg,#82adff,#5689f1); transform:translateY(-1px); }
+        button.subtle { background:#142843; }
+        button.subtle:hover { border-color:#6386bb; background:#1a3557; }
+        .list-item { padding:16px 18px; border-color:#2a4263; background:linear-gradient(135deg,#132844,#102038); }
+        table { border-spacing:0; }
+        th { padding-top:14px; padding-bottom:14px; }
+        td { border-top-color:#233a58; }
+        tbody tr:hover { background:#ffffff04; }
+        .limit-control { max-width:none; }
+        .limit-control input { width:88px; }
+        .limit-control button { white-space:nowrap; }
+        .usage-local { color:#a9bddb; font-size:12px; }
+        .footnote code { color:#bbd0f3; }
+        .auth-card { padding:34px; border-radius:22px; }
+        .auth-card > p { margin-bottom:3px; }
         @media (max-width: 650px) {
             .shell { padding: 22px 14px 40px; }
             header { margin-bottom: 28px; }
@@ -166,7 +205,7 @@
 
                 <div class="stats">
                     <div class="card stat"><div class="stat-label">Blocked sites</div><div class="stat-value" id="blockedCount">0</div></div>
-                    <div class="card stat"><div class="stat-label">Tracked time</div><div class="stat-value" id="trackedTime">0 min</div></div>
+                    <div class="card stat"><div class="stat-label">Usage tracking</div><div class="stat-value" id="trackedTime">Extension</div></div>
                     <div class="card stat"><div class="stat-label">Sesame coins</div><div class="stat-value" id="coinCount">0</div></div>
                 </div>
 
@@ -189,12 +228,12 @@
                     <div id="dashboardMessage" class="message" role="status" aria-live="polite"></div>
                     <div class="table-wrap">
                         <table id="sitesTable" hidden>
-                            <thead><tr><th>Website</th><th>Time spent</th><th>Daily allowance (0 = block forever)</th></tr></thead>
+                            <thead><tr><th>Website</th><th>Usage</th><th>Daily allowance</th></tr></thead>
                             <tbody id="sitesBody"></tbody>
                         </table>
                         <div id="emptyState" class="empty">No blocked websites yet. Add a domain above to get started.</div>
                     </div>
-                    <p class="footnote">Enter 0 minutes to block a site permanently. Positive allowances are daily and are saved in <code>siteTimeLimits</code> as seconds.</p><p class="footnote">Time spent is read from <code>timeOnWebsite</code>.</p>
+                    <p class="footnote">Set a daily limit in minutes. Set it to 0 to block the site all day. Limits sync through Firestore; usage and coin purchases stay on this device and appear in the extension popup.</p>
                 </section>
 
                 <section id="productivityPanel" class="card panel tab-panel" data-tab-panel="productivity" hidden>
@@ -279,7 +318,7 @@
 
     <script type="module">
         import {
-            observeAuth, createAccount, signIn, resetPassword, signOutUser,
+            observeAuth, createAccount, signIn, resetPassword, signOutUser, setSiteTimeLimit,
             ensureUserData, watchUserData, addBlockedSite,
             addProductiveSite, removeProductiveSite,
             addTodoTask, completeTodoTask, removeTodoTask, addSleepModeSite,
@@ -527,17 +566,15 @@
         function render(data) {
             latestData = data || {};
             const sites = Array.isArray(latestData.blockedSites) ? latestData.blockedSites : [];
-            const time = latestData.timeOnWebsite || {};
             const limits = latestData.siteTimeLimits || {};
             const today = localDateKey();
-            const todayPurchases = latestData.siteUnlockTimeByDay?.[today] || {};
             const focusToday = latestData.productivityTimeByDay?.[today] || {};
             const focusSeconds = Object.values(focusToday).reduce((sum, value) => sum + (Number(value) || 0), 0);
             const focusCoins = Object.values(focusToday).reduce((sum, value) => sum + Math.floor((Number(value) || 0) / 60), 0);
             document.getElementById("productiveToday").textContent = formatDuration(focusSeconds);
             document.getElementById("focusCoinsToday").textContent = focusCoins;
             document.getElementById("blockedCount").textContent = sites.length;
-            document.getElementById("trackedTime").textContent = formatDuration(Object.values(time).reduce((sum, value) => sum + (Number(value) || 0), 0));
+            document.getElementById("trackedTime").textContent = "Extension";
             document.getElementById("coinCount").textContent = Number(latestData.coins) || 0;
             document.getElementById("rewardCoinBalance").textContent = Number(latestData.coins) || 0;
             document.getElementById("penaltyCoinBalance").textContent = Number(latestData.coins) || 0;
@@ -553,17 +590,43 @@
                 siteCell.className = "site";
                 siteCell.textContent = domain;
                 const timeCell = document.createElement("td");
-                timeCell.textContent = formatDuration(time[domain]);
+                timeCell.className = "usage-local";
+                timeCell.textContent = "View in extension";
 
                 const limitCell = document.createElement("td");
                 const storedLimit = limits[domain];
                 const limitSeconds = storedLimit === undefined || storedLimit === null ? 3600 : Number(storedLimit);
-                const purchasedSeconds = Number(todayPurchases[domain]) || 0;
-                const allowanceMinutes = Number.isFinite(limitSeconds) ? Math.max(0, Math.round((limitSeconds + purchasedSeconds) / 60)) : 60;
-                if (allowanceMinutes === 0) limitCell.textContent = "Blocked forever";
-                else if (purchasedSeconds > 0 && limitSeconds <= 0) limitCell.textContent = `${allowanceMinutes} min today · coin time`;
-                else if (purchasedSeconds > 0) limitCell.textContent = `${allowanceMinutes} min today · +${Math.round(purchasedSeconds / 60)} coin min`;
-                else limitCell.textContent = `${allowanceMinutes} min/day`;
+                const allowanceMinutes = Number.isFinite(limitSeconds) ? Math.max(0, Math.round(limitSeconds / 60)) : 60;
+                const control = document.createElement("div");
+                control.className = "limit-control";
+                const input = document.createElement("input");
+                input.type = "number";
+                input.min = "0";
+                input.step = "1";
+                input.value = String(allowanceMinutes);
+                input.setAttribute("aria-label", `Daily limit for ${domain} in minutes`);
+                const suffix = document.createElement("span");
+                suffix.textContent = "min/day";
+                const save = document.createElement("button");
+                save.type = "button";
+                save.className = "subtle";
+                save.textContent = "Save";
+                save.addEventListener("click", async () => {
+                    const minutes = Number(input.value);
+                    if (!Number.isSafeInteger(minutes) || minutes < 0) {
+                        showMessage(dashboardMessage, "Enter 0 or a positive whole-number of minutes.");
+                        return;
+                    }
+                    save.disabled = true;
+                    try {
+                        await setSiteTimeLimit(currentUser.email, domain, minutes * 60);
+                        showMessage(dashboardMessage, `${domain} daily limit saved.`, true);
+                    } catch (error) {
+                        showMessage(dashboardMessage, readableError(error));
+                    } finally { save.disabled = false; }
+                });
+                control.append(input, suffix, save);
+                limitCell.append(control);
                 row.append(siteCell, timeCell, limitCell);
                 body.append(row);
             }
