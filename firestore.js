@@ -115,7 +115,7 @@ function cleanTaskFields(fields = {}) {
     if (fields.categoryId !== undefined) clean.categoryId = String(fields.categoryId || "");
     if (fields.minutes !== undefined) clean.minutes = Math.max(0, Math.min(1440, Math.round(Number(fields.minutes) || 0)));
     if (fields.intensity !== undefined) clean.intensity = Math.max(1, Math.min(10, Math.round(Number(fields.intensity) || 1)));
-    if (fields.reward !== undefined) clean.reward = Math.max(0, Math.round(Number(fields.reward) || 0));
+    if (fields.reward !== undefined) clean.reward = Math.max(0, Math.round((Number(fields.reward) || 0) * 100) / 100);
     if (fields.color !== undefined) clean.color = cleanColor(fields.color);
     if (fields.mode !== undefined) clean.mode = ["bank", "daily", "once"].includes(fields.mode) ? fields.mode : "bank";
     return clean;
@@ -149,7 +149,9 @@ function bumpDailyStats(data, { gained = 0, lost = 0, task = null } = {}) {
             categoryId: task.categoryId || "",
             minutes: Number(task.minutes) || 0,
             intensity: Number(task.intensity) || 0,
-            volume: taskVolume(task),
+            volume: task.volume === undefined ? taskVolume(task) : Number(task.volume) || 0,
+            minutesSpent: Number(task.minutesSpent) || 0,
+            rating: Number(task.rating) || 3,
             at: new Date().toISOString()
         });
     }
@@ -350,7 +352,7 @@ export async function updateTodoTask(email, taskId, fields) {
     }));
 }
 
-export async function completeTodoTask(email, taskId) {
+export async function completeTodoTask(email, taskId, { rating = 3, minutesSpent = 0 } = {}) {
     return changeUserData(email, (data) => {
         const tasks = data.todoTasks || [];
         const task = tasks.find((item) => item.id === taskId);
@@ -359,9 +361,15 @@ export async function completeTodoTask(email, taskId) {
         const mode = taskMode(task);
         if (mode === "daily" && task.completedDate === today) return {};
         if (mode === "once" && task.completed) return {};
-        const reward = Math.max(0, Number(task.reward) || 0);
+        const score = Math.max(1, Math.min(5, Math.floor(Number(rating) || 3)));
+        const spent = Math.max(0, Math.min(1440, Math.floor(Number(minutesSpent) || 0)));
+        const reward = Math.round((Number(task.reward) || 0) * [0, 0.5, 0.75, 1, 1.25, 1.5][score] * 100) / 100;
         const coins = (Number(data.coins) || 0) + reward;
-        const dailySeedStats = bumpDailyStats(data, { gained: reward, task });
+        const completed = {
+            ...task, reward, rating: score, minutesSpent: spent,
+            volume: Math.round(spent * (Number(task.intensity) || 0) * 100) / 100
+        };
+        const dailySeedStats = bumpDailyStats(data, { gained: reward, task: completed });
         if (mode === "once") {
             return { todoTasks: tasks.filter((item) => item.id !== taskId), coins, dailySeedStats };
         }

@@ -177,6 +177,27 @@
         .recap-stat.loss strong { color: var(--red); }
         .recap-tasks { display: grid; gap: 6px; margin: 0 0 14px; padding: 0; list-style: none; }
         .recap-tasks li { padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--soft); font-size: 13px; }
+        .goal-rings { display: flex; flex-wrap: wrap; gap: 12px; margin: 12px 0; }
+        .goal-ring-wrap { display: grid; justify-items: center; gap: 5px; min-width: 82px; color: var(--muted); font-size: 11px; text-align: center; }
+        .goal-ring { display: grid; width: 76px; height: 76px; place-items: center; border-radius: 50%; background: conic-gradient(var(--goal-color) var(--goal-progress), #3a3328 0); }
+        .goal-ring::before { display: grid; width: 58px; height: 58px; place-items: center; border-radius: 50%; background: var(--card); color: var(--ink); content: attr(data-label); font-size: 12px; font-weight: 750; }
+        .goal-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
+        .goal-card { display: flex; align-items: center; gap: 12px; padding: 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--soft); }
+        .goal-copy { min-width: 0; flex: 1; }
+        .goal-copy strong { display: block; }
+        .goal-copy p { margin-top: 3px; font-size: 12px; }
+        .category-list { display: grid; gap: 7px; margin-top: 10px; }
+        .category-row { display: flex; align-items: center; gap: 7px; padding: 7px; border: 1px solid var(--line); border-radius: 9px; background: var(--soft); }
+        .category-row input[type="text"] { flex: 1; }
+        .category-row input[type="color"] { width: 42px; height: 36px; padding: 3px; }
+        .overlay { position: fixed; inset: 0; z-index: 30; display: grid; place-items: center; overflow-y: auto; padding: 20px; background: #0c0a08dd; }
+        .overlay-card { width: min(620px, 100%); padding: 20px; }
+        .overlay-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 12px; }
+        .overlay-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .overlay-grid .field { margin: 0; }
+        .overlay-grid .wide { grid-column: 1 / -1; }
+        .overlay-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; }
+        .rating-note { margin: 10px 0; padding: 10px; border: 1px solid #5a4a2c; border-radius: 9px; color: #f0d48a; background: #2a2216; }
         @media (max-width: 820px) {
             .app.signed-in { grid-template-columns: 1fr; }
             .sidebar {
@@ -192,7 +213,7 @@
         @media (max-width: 650px) {
             .shell { padding: 16px 12px 32px; }
             .stats, .recap-grid { grid-template-columns: 1fr; }
-            .task-form, .economy-form { grid-template-columns: 1fr 1fr; }
+            .task-form, .economy-form, .overlay-grid { grid-template-columns: 1fr; }
             .task-form button, .economy-form button { grid-column: 1 / -1; }
             .list-item { align-items: flex-start; flex-direction: column; }
             .todo-hero { flex-direction: column; align-items: flex-start; }
@@ -206,7 +227,8 @@
         <aside class="sidebar" id="sidebar" hidden>
             <div class="brand"><span class="mark" aria-hidden="true">s</span> sesame</div>
             <div class="seed-balance"><span>Seeds</span><strong id="sidebarSeeds">0</strong></div>
-            <button class="nav-btn" type="button" data-tab="todo" aria-selected="true">To-do</button>
+            <button class="nav-btn" type="button" data-tab="todo" aria-selected="true">Tasks</button>
+            <button class="nav-btn" type="button" data-tab="goals" aria-selected="false">Goals</button>
             <button class="nav-btn" type="button" data-tab="limits" aria-selected="false">Limits</button>
             <button class="nav-btn" type="button" data-tab="productivity" aria-selected="false">Focus sites</button>
             <button class="nav-btn" type="button" data-tab="economy" aria-selected="false">Rewards</button>
@@ -240,8 +262,8 @@
                     <div class="page-head">
                         <div>
                             <div class="eyebrow">Today</div>
-                            <h1>Your to-do list</h1>
-                            <p>Plan the day. Finished tasks grow seeds.</p>
+                            <h1>Your tasks</h1>
+                            <p>Keep a bank of tasks ready whenever you are.</p>
                         </div>
                     </div>
                     <div class="stats">
@@ -252,21 +274,15 @@
                     <div class="card panel">
                         <div class="todo-hero">
                             <div>
-                                <h3>Task board</h3>
-                                <p>Daily tasks reset each morning. One-time tasks leave the list when done.</p>
+                                <h3>Task bank</h3>
+                                <p>Complete bank tasks any time. Daily tasks reset each morning.</p>
                             </div>
                             <div class="hero-metrics">
                                 <div class="hero-stat"><strong id="todoOpenCount">0</strong><span>up next</span></div>
                                 <div class="hero-stat"><strong id="todoCompleteCount">0</strong><span>done today</span></div>
                             </div>
                         </div>
-                        <form id="todoForm" class="task-form">
-                            <input id="todoTitleInput" type="text" placeholder="Task name" aria-label="Task name" required maxlength="120">
-                            <input id="todoRewardInput" type="number" min="1" step="1" value="1" aria-label="Seed reward" required placeholder="Seeds">
-                            <button class="primary" type="submit">Add task</button>
-                            <textarea id="todoDescriptionInput" class="form-wide" maxlength="500" placeholder="Details (optional)" aria-label="Task details"></textarea>
-                            <label class="check-field form-wide"><input id="todoRecurringInput" type="checkbox"> Repeat every day</label>
-                        </form>
+                        <button class="primary" id="openTaskForm" type="button">＋ Add a task</button>
                         <div class="board-heading">
                             <h3>Open work</h3>
                             <div class="board-progress">
@@ -276,6 +292,29 @@
                         </div>
                         <div id="todoList" class="item-list"></div>
                     </div>
+                    <div class="card panel" style="margin-top:12px">
+                        <div class="panel-head"><h2>Categories</h2><p>Choose a color and organize your tasks.</p></div>
+                        <form id="categoryForm" class="section-form">
+                            <input id="categoryNameInput" type="text" maxlength="40" placeholder="New category" aria-label="Category name" required>
+                            <input id="categoryColorInput" type="color" value="#b58fd9" aria-label="Category color">
+                            <button class="primary" type="submit">Add category</button>
+                        </form>
+                        <div id="categoryList" class="category-list"></div>
+                    </div>
+                </section>
+
+                <section id="goalsPanel" class="card panel tab-panel" data-tab-panel="goals" hidden>
+                    <div class="page-head"><div><div class="eyebrow">Grow steadily</div><h1>Your goals</h1><p>Volume is completed minutes × task intensity.</p></div></div>
+                    <form id="goalForm" class="task-form">
+                        <input id="goalTitleInput" type="text" maxlength="80" placeholder="Goal name" aria-label="Goal name" required>
+                        <input id="goalCountInput" type="number" min="1" value="3" aria-label="Number of tasks" required>
+                        <select id="goalPeriodInput" aria-label="Goal period"><option value="daily">Each day</option><option value="weekly">Each week</option></select>
+                        <input id="goalVolumeInput" type="number" min="0" step="1" value="50" placeholder="Minimum volume" aria-label="Minimum task volume" required>
+                        <select id="goalCategoryInput" aria-label="Category (optional)"><option value="">Any category</option></select>
+                        <input id="goalColorInput" type="color" value="#d4a54a" aria-label="Goal color">
+                        <button class="primary form-wide" type="submit">Add goal</button>
+                    </form>
+                    <div id="goalList" class="goal-grid"></div>
                 </section>
 
                 <section id="limitsPanel" class="card panel tab-panel" data-tab-panel="limits" hidden>
@@ -380,6 +419,8 @@
             <div class="eyebrow">Yesterday</div>
             <h1>Your seed recap</h1>
             <p>A quick look at yesterday before you start today.</p>
+            <h3 style="margin-top:14px">Daily goals</h3>
+            <div id="recapGoalRings" class="goal-rings"></div>
             <div class="recap-grid">
                 <div class="card recap-stat gain"><span class="stat-label">Gained</span><strong id="recapGained">0</strong></div>
                 <div class="card recap-stat loss"><span class="stat-label">Lost</span><strong id="recapLost">0</strong></div>
@@ -391,12 +432,43 @@
         </div>
     </div>
 
+    <div id="taskEditor" class="overlay" hidden>
+        <form id="taskForm" class="card overlay-card">
+            <div class="overlay-head"><div><div class="eyebrow">Task bank</div><h1 id="taskEditorTitle">Add a task</h1></div><button class="subtle" id="closeTaskForm" type="button" aria-label="Close">Close</button></div>
+            <div class="overlay-grid">
+                <div class="field wide"><label for="taskTitleInput">Task name</label><input id="taskTitleInput" maxlength="120" required></div>
+                <div class="field wide"><label for="taskDescriptionInput">Details</label><textarea id="taskDescriptionInput" maxlength="500" placeholder="What does this task involve?"></textarea></div>
+                <div class="field"><label for="taskCategoryInput">Category</label><select id="taskCategoryInput"><option value="">No category</option></select></div>
+                <div class="field"><label for="taskModeInput">Repeat</label><select id="taskModeInput"><option value="bank">Task bank · repeat anytime</option><option value="daily">Daily · once each day</option><option value="once">One-time · remove when done</option></select></div>
+                <div class="field"><label for="taskMinutesInput">Planned minutes</label><input id="taskMinutesInput" type="number" min="0" max="1440" value="20" required></div>
+                <div class="field"><label for="taskIntensityInput">Intensity (1–10)</label><input id="taskIntensityInput" type="number" min="1" max="10" value="5" required></div>
+                <div class="field"><label for="taskRewardInput">Base seeds</label><input id="taskRewardInput" type="number" min="0" step="0.25" value="2" required></div>
+                <div class="field"><label for="taskColorInput">Task color</label><input id="taskColorInput" type="color" value="#d4a54a"></div>
+            </div>
+            <div id="taskFormMessage" class="message" role="status"></div>
+            <div class="overlay-actions"><button class="subtle" id="cancelTaskForm" type="button">Cancel</button><button class="primary" type="submit">Save task</button></div>
+        </form>
+    </div>
+
+    <div id="taskCompleteScreen" class="overlay" hidden>
+        <form id="taskCompleteForm" class="card overlay-card" style="max-width:460px">
+            <div class="overlay-head"><div><div class="eyebrow">Task reflection</div><h1 id="completeTaskTitle">Complete task</h1></div></div>
+            <p>How did it go, and how long did you work on it?</p>
+            <div class="field"><label for="completionRatingInput">Completion rating</label><select id="completionRatingInput"><option value="1">1 · A little</option><option value="2">2 · Some progress</option><option value="3" selected>3 · Completed</option><option value="4">4 · Strong effort</option><option value="5">5 · Excellent</option></select></div>
+            <div class="field"><label for="completionMinutesInput">Time spent (minutes)</label><input id="completionMinutesInput" type="number" min="0" max="1440" step="1" required></div>
+            <div id="completionReward" class="rating-note"></div>
+            <div class="overlay-actions"><button class="subtle" id="cancelCompletion" type="button">Cancel</button><button class="primary" type="submit">Finish task</button></div>
+        </form>
+    </div>
+
     <script type="module">
         import {
             observeAuth, createAccount, signIn, resetPassword, signOutUser, setSiteTimeLimit,
             ensureUserData, watchUserData, addBlockedSite,
             addProductiveSite, removeProductiveSite, setSiteSeedRate, setProductivitySeedRate,
-            addTodoTask, completeTodoTask, removeTodoTask, addSleepModeSite,
+            addTodoTask, updateTodoTask, completeTodoTask, removeTodoTask,
+            addTaskCategory, updateTaskCategory, removeTaskCategory,
+            addGoal, removeGoal, taskMode, taskVolume, addSleepModeSite,
             removeSleepModeSite, addSleepSchedule, removeSleepSchedule,
             addCoinReward, removeCoinReward, redeemCoinReward,
             addCoinPenalty, removeCoinPenalty, redeemCoinPenalty,
@@ -416,6 +488,8 @@
         let stopWatching = null;
         let latestData = null;
         let recapChecked = false;
+        let editingTaskId = null;
+        let completingTask = null;
 
         function showMessage(element, message, good = false) {
             element.textContent = message;
@@ -456,9 +530,98 @@
             return localDateKey(date);
         }
 
+        function goalStart(period, date = new Date()) {
+            const start = new Date(date);
+            if (period === "weekly") start.setDate(start.getDate() - (start.getDay() + 6) % 7);
+            return localDateKey(start);
+        }
+
+        function goalCount(goal, stats, start, end = localDateKey()) {
+            const done = Object.entries(stats || {})
+                .filter(([date]) => date >= start && date <= end)
+                .flatMap(([, day]) => day.completedTasks || []);
+            return done.filter((task) => (!goal.categoryId || task.categoryId === goal.categoryId)
+                && Number(task.volume || 0) >= Number(goal.minVolume || 0)).length;
+        }
+
+        function goalRing(goal, count, label = "") {
+            const category = (latestData?.taskCategories || []).find((item) => item.id === goal.categoryId);
+            const color = goal.color || category?.color || "#d4a54a";
+            const percent = Math.min(100, Math.round(count / Math.max(1, Number(goal.count) || 1) * 100));
+            const wrap = document.createElement("div");
+            wrap.className = "goal-ring-wrap";
+            const ring = document.createElement("div");
+            ring.className = "goal-ring";
+            ring.style.setProperty("--goal-color", color);
+            ring.style.setProperty("--goal-progress", `${percent}%`);
+            ring.dataset.label = `${count}/${goal.count}`;
+            wrap.append(ring);
+            const name = document.createElement("span");
+            name.textContent = `${goal.title}${label ? ` · ${label}` : ""}`;
+            wrap.append(name);
+            return wrap;
+        }
+
+        function renderGoalOptions(categories) {
+            for (const id of ["taskCategoryInput", "goalCategoryInput"]) {
+                const select = document.getElementById(id);
+                const selected = select.value;
+                select.replaceChildren(new Option(id === "goalCategoryInput" ? "Any category" : "No category", ""));
+                for (const category of categories) select.add(new Option(category.name, category.id));
+                select.value = selected;
+            }
+        }
+
+        function renderGoals(goals) {
+            const list = document.getElementById("goalList");
+            list.replaceChildren();
+            if (!goals.length) {
+                const empty = document.createElement("div");
+                empty.className = "empty-card";
+                empty.textContent = "Add a goal to track tasks by volume and category.";
+                list.append(empty);
+                return;
+            }
+            for (const goal of goals) {
+                const start = goalStart(goal.period);
+                const count = goalCount(goal, latestData.dailySeedStats, start);
+                const card = document.createElement("article");
+                card.className = "goal-card";
+                card.append(goalRing(goal, count, goal.period === "weekly" ? "this week" : "today"));
+                const copy = document.createElement("div");
+                copy.className = "goal-copy";
+                const title = document.createElement("strong");
+                title.textContent = goal.title;
+                const category = (latestData.taskCategories || []).find((item) => item.id === goal.categoryId);
+                const description = document.createElement("p");
+                description.textContent = `${count} of ${goal.count} tasks · volume ≥ ${goal.minVolume}${category ? ` · ${category.name}` : " · any category"}`;
+                copy.append(title, description);
+                const remove = document.createElement("button");
+                remove.type = "button";
+                remove.className = "subtle danger";
+                remove.textContent = "Remove";
+                remove.addEventListener("click", async () => {
+                    try { await removeGoal(currentUser.email, goal.id); }
+                    catch (error) { showMessage(dashboardMessage, readableError(error)); }
+                });
+                card.append(copy, remove);
+                list.append(card);
+            }
+        }
+
+        function renderRecapGoals(data, date) {
+            const rings = document.getElementById("recapGoalRings");
+            rings.replaceChildren();
+            const goals = (data.goals || []).filter((goal) => goal.period !== "weekly");
+            for (const goal of goals) rings.append(goalRing(goal, goalCount(goal, data.dailySeedStats, date, date), "yesterday"));
+            if (!goals.length) rings.textContent = "No daily goals yet.";
+        }
+
         function showDailyRecap(data) {
             const recap = document.getElementById("dailyRecap");
-            const yesterday = data.dailySeedStats?.[yesterdayKey()] || {};
+            const date = yesterdayKey();
+            const yesterday = data.dailySeedStats?.[date] || {};
+            renderRecapGoals(data, date);
             document.getElementById("recapGained").textContent = `+${formatSeeds(yesterday.gained || 0)}`;
             document.getElementById("recapLost").textContent = `−${formatSeeds(yesterday.lost || 0)}`;
             document.getElementById("recapBalance").textContent = formatSeeds(data.coins);
@@ -472,11 +635,50 @@
             } else {
                 for (const task of tasks) {
                     const item = document.createElement("li");
-                    item.textContent = `${task.title}  ·  +${formatSeeds(task.reward)} seeds`;
+                    item.textContent = `${task.title} · ${task.minutesSpent || 0} min · rating ${task.rating || 3}/5 · +${formatSeeds(task.reward)} seeds`;
                     list.append(item);
                 }
             }
             recap.hidden = false;
+        }
+
+        function renderCategories(categories) {
+            renderGoalOptions(categories);
+            const list = document.getElementById("categoryList");
+            list.replaceChildren();
+            for (const category of categories) {
+                const row = document.createElement("div");
+                row.className = "category-row";
+                const name = document.createElement("input");
+                name.type = "text";
+                name.maxLength = 40;
+                name.value = category.name;
+                name.setAttribute("aria-label", `${category.name} category name`);
+                const color = document.createElement("input");
+                color.type = "color";
+                color.value = category.color || "#d4a54a";
+                color.setAttribute("aria-label", `${category.name} category color`);
+                const save = document.createElement("button");
+                save.type = "button";
+                save.className = "subtle";
+                save.textContent = "Save";
+                save.addEventListener("click", async () => {
+                    try {
+                        await updateTaskCategory(currentUser.email, category.id, { name: name.value, color: color.value });
+                        showMessage(dashboardMessage, "Category updated.", true);
+                    } catch (error) { showMessage(dashboardMessage, readableError(error)); }
+                });
+                const remove = document.createElement("button");
+                remove.type = "button";
+                remove.className = "subtle danger";
+                remove.textContent = "Remove";
+                remove.addEventListener("click", async () => {
+                    try { await removeTaskCategory(currentUser.email, category.id); }
+                    catch (error) { showMessage(dashboardMessage, readableError(error)); }
+                });
+                row.append(name, color, save, remove);
+                list.append(row);
+            }
         }
 
         function renderSiteCollection(containerId, sites, onRemove, meta = () => "") {
@@ -571,16 +773,48 @@
             }
         }
 
+        function openTaskEditor(task = null) {
+            editingTaskId = task?.id || null;
+            document.getElementById("taskEditorTitle").textContent = task ? "Edit task" : "Add a task";
+            document.getElementById("taskTitleInput").value = task?.title || "";
+            document.getElementById("taskDescriptionInput").value = task?.description || "";
+            document.getElementById("taskCategoryInput").value = task?.categoryId || "";
+            document.getElementById("taskModeInput").value = taskMode(task || {});
+            document.getElementById("taskMinutesInput").value = task?.minutes ?? 20;
+            document.getElementById("taskIntensityInput").value = task?.intensity ?? 5;
+            document.getElementById("taskRewardInput").value = task?.reward ?? 2;
+            document.getElementById("taskColorInput").value = task?.color || "#d4a54a";
+            document.getElementById("taskFormMessage").textContent = "";
+            document.getElementById("taskEditor").hidden = false;
+            document.getElementById("taskTitleInput").focus();
+        }
+
+        function openCompletion(task) {
+            completingTask = task;
+            document.getElementById("completeTaskTitle").textContent = task.title;
+            document.getElementById("completionRatingInput").value = "3";
+            document.getElementById("completionMinutesInput").value = task.minutes || 0;
+            updateCompletionReward();
+            document.getElementById("taskCompleteScreen").hidden = false;
+        }
+
+        function updateCompletionReward() {
+            if (!completingTask) return;
+            const rating = Number(document.getElementById("completionRatingInput").value);
+            const multiplier = [0, 0.5, 0.75, 1, 1.25, 1.5][rating];
+            const earned = Math.round((Number(completingTask.reward) || 0) * multiplier * 100) / 100;
+            document.getElementById("completionReward").textContent = `You’ll earn ${formatSeeds(earned)} seeds (${multiplier * 100}% of the ${formatSeeds(completingTask.reward)} seed base).`;
+        }
+
         function renderTasks(tasks) {
             const list = document.getElementById("todoList");
             list.replaceChildren();
             const today = localDateKey();
-            const isCompleteToday = (task) => task.recurring
-                ? task.completedDate === today
-                : Boolean(task.completed);
-            const completeCount = tasks.filter(isCompleteToday).length;
-            const openCount = tasks.length - completeCount;
-            const progress = tasks.length ? Math.round(completeCount / tasks.length * 100) : 0;
+            const completedLogs = latestData.dailySeedStats?.[today]?.completedTasks || [];
+            const isCompleteToday = (task) => taskMode(task) === "daily" && task.completedDate === today;
+            const completeCount = completedLogs.length;
+            const openCount = tasks.filter((task) => !isCompleteToday(task)).length;
+            const progress = tasks.length ? Math.min(100, Math.round(new Set(completedLogs.map((task) => task.taskId)).size / tasks.length * 100)) : 0;
             document.getElementById("todoOpenCount").textContent = openCount;
             document.getElementById("todoCompleteCount").textContent = completeCount;
             document.getElementById("todoProgressLabel").textContent = `${progress}% complete`;
@@ -594,8 +828,10 @@
             }
             for (const task of tasks) {
                 const completedToday = isCompleteToday(task);
+                const category = (latestData.taskCategories || []).find((item) => item.id === task.categoryId);
                 const row = document.createElement("div");
                 row.className = `list-item task-card${completedToday ? " completed" : ""}`;
+                row.style.borderLeft = `4px solid ${task.color || category?.color || "#d4a54a"}`;
                 const label = document.createElement("span");
                 label.className = "item-title";
                 label.textContent = task.title;
@@ -612,8 +848,19 @@
                 tags.className = "task-tags";
                 const kind = document.createElement("span");
                 kind.className = "task-status";
-                kind.textContent = task.recurring ? "Daily" : "One-time";
+                kind.textContent = taskMode(task) === "bank" ? "Bank" : taskMode(task) === "daily" ? "Daily" : "One-time";
                 tags.append(kind);
+                if (category) {
+                    const categoryTag = document.createElement("span");
+                    categoryTag.className = "task-status";
+                    categoryTag.textContent = category.name;
+                    categoryTag.style.color = category.color;
+                    tags.append(categoryTag);
+                }
+                const volume = document.createElement("span");
+                volume.className = "item-meta";
+                volume.textContent = `${task.minutes || 0} min · intensity ${task.intensity || 1} · volume ${taskVolume(task)}`;
+                tags.append(volume);
                 copy.append(tags);
                 const check = document.createElement("span");
                 check.className = "task-check";
@@ -629,18 +876,19 @@
                 reward.textContent = `${formatSeeds(task.reward)} seeds`;
                 const state = document.createElement("span");
                 state.className = "task-status";
-                state.textContent = completedToday ? "Done today" : "Up next";
+                const doneCount = completedLogs.filter((item) => item.taskId === task.id).length;
+                state.textContent = completedToday ? "Done today" : doneCount ? `Done ${doneCount}× today` : "Up next";
                 const complete = document.createElement("button");
                 complete.type = "button";
                 complete.className = "subtle";
-                complete.textContent = completedToday ? "Done today" : task.recurring ? "Complete today" : "Complete";
+                complete.textContent = completedToday ? "Done today" : "Complete";
                 complete.disabled = completedToday;
-                complete.addEventListener("click", async () => {
-                    try {
-                        await completeTodoTask(currentUser.email, task.id);
-                        showMessage(dashboardMessage, `Task completed: +${formatSeeds(task.reward)} seeds.`, true);
-                    } catch (error) { showMessage(dashboardMessage, readableError(error)); }
-                });
+                complete.addEventListener("click", () => openCompletion(task));
+                const edit = document.createElement("button");
+                edit.type = "button";
+                edit.className = "subtle";
+                edit.textContent = "Edit";
+                edit.addEventListener("click", () => openTaskEditor(task));
                 const remove = document.createElement("button");
                 remove.type = "button";
                 remove.className = "subtle danger";
@@ -649,7 +897,7 @@
                     try { await removeTodoTask(currentUser.email, task.id); }
                     catch (error) { showMessage(dashboardMessage, readableError(error)); }
                 });
-                actions.append(state, reward, complete, remove);
+                actions.append(state, reward, complete, edit, remove);
                 row.append(main, actions);
                 list.append(row);
             }
@@ -816,6 +1064,8 @@
 
             renderFocusSites(latestData.productivitySites || [], latestData.productivitySeedRates || {});
             renderTasks(latestData.todoTasks || []);
+            renderCategories(latestData.taskCategories || []);
+            renderGoals(latestData.goals || []);
             renderCoinItems("rewardList", latestData.rewards || [], "reward");
             renderCoinItems("penaltyList", latestData.coinPenalties || [], "penalty");
             renderSiteCollection("sleepSiteList", latestData.sleepModeSites || [], (site) => removeSleepModeSite(currentUser.email, site), () => "Always blocked");
@@ -840,6 +1090,111 @@
 
         document.querySelectorAll("[data-tab]").forEach((button) => {
             button.addEventListener("click", () => selectTab(button.dataset.tab));
+        });
+        document.getElementById("openTaskForm").addEventListener("click", () => openTaskEditor());
+        for (const id of ["closeTaskForm", "cancelTaskForm"]) {
+            document.getElementById(id).addEventListener("click", () => {
+                document.getElementById("taskEditor").hidden = true;
+            });
+        }
+        document.addEventListener("keydown", (event) => {
+            if (event.key !== "Escape") return;
+            document.getElementById("taskEditor").hidden = true;
+            document.getElementById("taskCompleteScreen").hidden = true;
+            completingTask = null;
+        });
+        document.getElementById("taskEditor").addEventListener("click", (event) => {
+            if (event.target.id === "taskEditor") event.currentTarget.hidden = true;
+        });
+        document.getElementById("cancelCompletion").addEventListener("click", () => {
+            document.getElementById("taskCompleteScreen").hidden = true;
+            completingTask = null;
+        });
+        document.getElementById("completionRatingInput").addEventListener("change", updateCompletionReward);
+        document.getElementById("completionMinutesInput").addEventListener("input", updateCompletionReward);
+
+        // Task creation and editing happen on their own overlay screen.
+        document.getElementById("taskForm").addEventListener("submit", async (event) => {
+            event.preventDefault();
+            const minutes = Number(document.getElementById("taskMinutesInput").value);
+            const intensity = Number(document.getElementById("taskIntensityInput").value);
+            const reward = Number(document.getElementById("taskRewardInput").value);
+            if (!Number.isInteger(minutes) || minutes < 0 || minutes > 1440
+                || !Number.isInteger(intensity) || intensity < 1 || intensity > 10
+                || !Number.isFinite(reward) || reward < 0) {
+                showMessage(document.getElementById("taskFormMessage"), "Use 0–1440 minutes, intensity 1–10, and a nonnegative seed value.");
+                return;
+            }
+            const fields = {
+                title: document.getElementById("taskTitleInput").value,
+                description: document.getElementById("taskDescriptionInput").value,
+                categoryId: document.getElementById("taskCategoryInput").value,
+                mode: document.getElementById("taskModeInput").value,
+                minutes, intensity, reward,
+                color: document.getElementById("taskColorInput").value
+            };
+            try {
+                if (editingTaskId) await updateTodoTask(currentUser.email, editingTaskId, fields);
+                else await addTodoTask(currentUser.email, fields);
+                document.getElementById("taskForm").reset();
+                document.getElementById("taskEditor").hidden = true;
+                showMessage(dashboardMessage, editingTaskId ? "Task updated." : "Task added to your bank.", true);
+                editingTaskId = null;
+            } catch (error) { showMessage(document.getElementById("taskFormMessage"), readableError(error)); }
+        });
+
+        // Completion collects a self-rating and actual minutes before awarding seeds.
+        document.getElementById("taskCompleteForm").addEventListener("submit", async (event) => {
+            event.preventDefault();
+            if (!completingTask) return;
+            const rating = Number(document.getElementById("completionRatingInput").value);
+            const minutesSpent = Number(document.getElementById("completionMinutesInput").value);
+            if (!Number.isInteger(minutesSpent) || minutesSpent < 0 || minutesSpent > 1440) return;
+            const multiplier = [0, 0.5, 0.75, 1, 1.25, 1.5][rating];
+            const earned = Math.round((Number(completingTask.reward) || 0) * multiplier * 100) / 100;
+            try {
+                await completeTodoTask(currentUser.email, completingTask.id, { rating, minutesSpent });
+                showMessage(dashboardMessage, `Task logged: ${minutesSpent} min, rating ${rating}/5, +${formatSeeds(earned)} seeds.`, true);
+                document.getElementById("taskCompleteScreen").hidden = true;
+                completingTask = null;
+            } catch (error) { showMessage(dashboardMessage, readableError(error)); }
+        });
+
+        document.getElementById("categoryForm").addEventListener("submit", async (event) => {
+            event.preventDefault();
+            try {
+                await addTaskCategory(currentUser.email,
+                    document.getElementById("categoryNameInput").value,
+                    document.getElementById("categoryColorInput").value);
+                document.getElementById("categoryForm").reset();
+                showMessage(dashboardMessage, "Category added.", true);
+            } catch (error) { showMessage(dashboardMessage, readableError(error)); }
+        });
+
+        document.getElementById("goalCategoryInput").addEventListener("change", (event) => {
+            const category = (latestData?.taskCategories || []).find((item) => item.id === event.target.value);
+            if (category?.color) document.getElementById("goalColorInput").value = category.color;
+        });
+
+        document.getElementById("goalForm").addEventListener("submit", async (event) => {
+            event.preventDefault();
+            const count = Number(document.getElementById("goalCountInput").value);
+            const minVolume = Number(document.getElementById("goalVolumeInput").value);
+            if (!Number.isInteger(count) || count < 1 || !Number.isFinite(minVolume) || minVolume < 0) {
+                showMessage(dashboardMessage, "Enter a whole task count and a nonnegative minimum volume.");
+                return;
+            }
+            try {
+                await addGoal(currentUser.email, {
+                    title: document.getElementById("goalTitleInput").value,
+                    count, minVolume,
+                    categoryId: document.getElementById("goalCategoryInput").value,
+                    period: document.getElementById("goalPeriodInput").value,
+                    color: document.getElementById("goalColorInput").value
+                });
+                document.getElementById("goalForm").reset();
+                showMessage(dashboardMessage, "Goal added.", true);
+            } catch (error) { showMessage(dashboardMessage, readableError(error)); }
         });
         document.getElementById("recapDismiss").addEventListener("click", () => {
             document.getElementById("dailyRecap").hidden = true;
@@ -926,24 +1281,6 @@
                 await addProductiveSite(currentUser.email, domain, seedRate);
                 document.getElementById("productiveSiteInput").value = "";
                 showMessage(dashboardMessage, `${domain} will earn ${formatSeeds(normalizeSeedRate(seedRate))} seeds per focused minute.`, true);
-            } catch (error) { showMessage(dashboardMessage, readableError(error)); }
-        });
-
-        document.getElementById("todoForm").addEventListener("submit", async (event) => {
-            event.preventDefault();
-            const title = document.getElementById("todoTitleInput").value.trim();
-            const description = document.getElementById("todoDescriptionInput").value.trim();
-            const reward = Number(document.getElementById("todoRewardInput").value);
-            const recurring = document.getElementById("todoRecurringInput").checked;
-            if (!title || !Number.isSafeInteger(reward) || reward < 1) {
-                showMessage(dashboardMessage, "Enter a task and a positive whole-number seed reward."); return;
-            }
-            try {
-                await addTodoTask(currentUser.email, title, description, reward, recurring);
-                document.getElementById("todoTitleInput").value = "";
-                document.getElementById("todoDescriptionInput").value = "";
-                document.getElementById("todoRecurringInput").checked = false;
-                showMessage(dashboardMessage, recurring ? "Daily task added." : "One-time task added.", true);
             } catch (error) { showMessage(dashboardMessage, readableError(error)); }
         });
 
