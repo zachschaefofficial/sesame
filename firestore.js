@@ -44,6 +44,13 @@ const normalizeUserEmail = (email) => {
 const userDocument = (email) => doc(db, "users", normalizeUserEmail(email));
 
 // `coins` is the stored seed balance so existing accounts keep their totals.
+// Starter categories. Users can rename, recolor, delete, or add their own.
+export const DEFAULT_CATEGORIES = [
+    { id: "physical", name: "Physical", color: "#e0795f" },
+    { id: "mental", name: "Mental", color: "#6fa8dc" },
+    { id: "social", name: "Social", color: "#b58fd9" }
+];
+
 const defaults = {
     blockedSites: [],
     siteTimeLimits: {},
@@ -51,6 +58,8 @@ const defaults = {
     productivitySites: [],
     productivitySeedRates: {},
     todoTasks: [],
+    taskCategories: DEFAULT_CATEGORIES,
+    goals: [],
     rewards: [],
     coinPenalties: [],
     sleepModeSites: [],
@@ -79,6 +88,39 @@ export function normalizeSeedRate(value, fallback = 1) {
     return Math.round(rate * 100) / 100;
 }
 
+// Task modes: "bank" can be completed any number of times, "daily" once per
+// day, "once" is removed after one completion. Older tasks only have the
+// `recurring` flag, so fall back to it.
+export function taskMode(task) {
+    if (task?.mode === "bank" || task?.mode === "daily" || task?.mode === "once") return task.mode;
+    return task?.recurring ? "daily" : "once";
+}
+
+// Volume = minutes x intensity. Goals are measured in volume per task.
+export function taskVolume(task) {
+    return Math.round((Number(task?.minutes) || 0) * (Number(task?.intensity) || 0) * 100) / 100;
+}
+
+const HEX_COLOR = /^#[0-9a-f]{6}$/i;
+const cleanColor = (value, fallback = "") => HEX_COLOR.test(String(value || "")) ? String(value).toLowerCase() : fallback;
+
+function cleanTaskFields(fields = {}) {
+    const clean = {};
+    if (fields.title !== undefined) {
+        const title = String(fields.title).trim().slice(0, 120);
+        if (!title) throw new Error("A task needs a name.");
+        clean.title = title;
+    }
+    if (fields.description !== undefined) clean.description = String(fields.description).trim().slice(0, 500);
+    if (fields.categoryId !== undefined) clean.categoryId = String(fields.categoryId || "");
+    if (fields.minutes !== undefined) clean.minutes = Math.max(0, Math.min(1440, Math.round(Number(fields.minutes) || 0)));
+    if (fields.intensity !== undefined) clean.intensity = Math.max(1, Math.min(10, Math.round(Number(fields.intensity) || 1)));
+    if (fields.reward !== undefined) clean.reward = Math.max(0, Math.round(Number(fields.reward) || 0));
+    if (fields.color !== undefined) clean.color = cleanColor(fields.color);
+    if (fields.mode !== undefined) clean.mode = ["bank", "daily", "once"].includes(fields.mode) ? fields.mode : "bank";
+    return clean;
+}
+
 function pruneDailyStats(stats) {
     const cutoff = new Date();
     cutoff.setDate(cutoff.getDate() - 30);
@@ -101,8 +143,13 @@ function bumpDailyStats(data, { gained = 0, lost = 0, task = null } = {}) {
     day.lost += Number(lost) || 0;
     if (task) {
         day.completedTasks.push({
+            taskId: task.id,
             title: task.title,
             reward: Math.max(0, Number(task.reward) || 0),
+            categoryId: task.categoryId || "",
+            minutes: Number(task.minutes) || 0,
+            intensity: Number(task.intensity) || 0,
+            volume: taskVolume(task),
             at: new Date().toISOString()
         });
     }
@@ -279,18 +326,28 @@ export async function removeProductiveSite(email, domain) {
     });
 }
 
-export async function addTodoTask(email, title, description, reward, recurring = false) {
+export async function addTodoTask(email, fields) {
+    const clean = cleanTaskFields({
+        description: "", categoryId: "", minutes: 10, intensity: 5,
+        reward: 1, color: "", mode: "bank", ...fields
+    });
     const task = {
         id: crypto.randomUUID(),
-        title: title.trim(),
-        description: description.trim(),
-        reward,
-        recurring: Boolean(recurring),
+        ...clean,
+        recurring: clean.mode === "daily",
         completed: false,
         createdAt: new Date().toISOString()
     };
     await changeUserData(email, (data) => ({ todoTasks: [...(data.todoTasks || []), task] }));
     return task;
+}
+
+export async function updateTodoTask(email, taskId, fields) {
+    const clean = cleanTaskFields(fields);
+    if (clean.mode) clean.recurring = clean.mode === "daily";
+    await changeUserData(email, (data) => ({
+        todoTasks: (data.todoTasks || []).map((task) => task.id === taskId ? { ...task, ...clean } : task)
+    }));
 }
 
 export async function completeTodoTask(email, taskId) {
@@ -299,14 +356,17 @@ export async function completeTodoTask(email, taskId) {
         const task = tasks.find((item) => item.id === taskId);
         if (!task) return {};
         const today = localDateKey();
-        if (task.recurring && task.completedDate === today) return {};
-        if (!task.recurring && task.completed) return {};
+        const mode = taskMode(task);
+        if (mode === "daily" && task.completedDate === today) return {};
+        if (mode === "once" && task.completed) return {};
         const reward = Math.max(0, Number(task.reward) || 0);
         const coins = (Number(data.coins) || 0) + reward;
         const dailySeedStats = bumpDailyStats(data, { gained: reward, task });
-        if (!task.recurring) {
+        if (mode === "once") {
             return { todoTasks: tasks.filter((item) => item.id !== taskId), coins, dailySeedStats };
         }
+        // Bank tasks stay in the list so they can be done again at any time.
+        if (mode === "bank") return { coins, dailySeedStats };
         return {
             todoTasks: tasks.map((item) => item.id === taskId
                 ? { ...item, completedDate: today, completedAt: new Date().toISOString() }
@@ -405,6 +465,81 @@ export async function removeSleepSchedule(email, scheduleId) {
     await changeUserData(email, (data) => ({
         sleepSchedules: (data.sleepSchedules || []).filter((item) => item.id !== scheduleId)
     }));
+}
+
+// Task categories: user-named and user-colored.
+export async function addTaskCategory(email, name, color) {
+    const title = String(name || "").trim().slice(0, 40);
+    if (!title) throw new Error("Give the category a name.");
+    const category = { id: crypto.randomUUID(), name: title, color: cleanColor(color, "#d4a54a") };
+    await changeUserData(email, (data) => {
+        if ((data.taskCategories || []).some((item) => item.name.toLowerCase() === title.toLowerCase())) {
+            throw new Error("You already have a category with that name.");
+        }
+        return { taskCategories: [...(data.taskCategories || []), category] };
+    });
+    return category;
+}
+
+export async function updateTaskCategory(email, categoryId, { name, color }) {
+    const title = String(name || "").trim().slice(0, 40);
+    if (!title) throw new Error("Give the category a name.");
+    await changeUserData(email, (data) => {
+        const categories = data.taskCategories || [];
+        if (categories.some((item) => item.id !== categoryId && item.name.toLowerCase() === title.toLowerCase())) {
+            throw new Error("You already have a category with that name.");
+        }
+        return {
+            taskCategories: categories.map((item) => item.id === categoryId
+                ? { ...item, name: title, color: cleanColor(color, item.color) }
+                : item)
+        };
+    });
+}
+
+// Tasks in a deleted category become uncategorized. Goals tied to it block
+// the delete so a goal never silently changes meaning.
+export async function removeTaskCategory(email, categoryId) {
+    await changeUserData(email, (data) => {
+        if ((data.goals || []).some((goal) => goal.categoryId === categoryId)) {
+            throw new Error("A goal uses this category. Remove or change that goal first.");
+        }
+        return {
+            taskCategories: (data.taskCategories || []).filter((item) => item.id !== categoryId),
+            todoTasks: (data.todoTasks || []).map((task) => task.categoryId === categoryId ? { ...task, categoryId: "" } : task)
+        };
+    });
+}
+
+// Goals: finish `count` tasks worth at least `minVolume` (minutes x intensity),
+// optionally within one category, per day or per week.
+function cleanGoal(fields = {}) {
+    return {
+        title: String(fields.title || "").trim().slice(0, 80),
+        categoryId: String(fields.categoryId || ""),
+        minVolume: Math.max(0, Math.round((Number(fields.minVolume) || 0) * 100) / 100),
+        count: Math.max(1, Math.min(999, Math.floor(Number(fields.count) || 1))),
+        period: fields.period === "weekly" ? "weekly" : "daily",
+        color: cleanColor(fields.color, "#d4a54a")
+    };
+}
+
+export async function addGoal(email, fields) {
+    const goal = { id: crypto.randomUUID(), ...cleanGoal(fields), createdAt: new Date().toISOString() };
+    await changeUserData(email, (data) => ({ goals: [...(data.goals || []), goal] }));
+    return goal;
+}
+
+export async function updateGoal(email, goalId, fields) {
+    await changeUserData(email, (data) => ({
+        goals: (data.goals || []).map((goal) => goal.id === goalId
+            ? { ...goal, ...cleanGoal({ ...goal, ...fields }) }
+            : goal)
+    }));
+}
+
+export async function removeGoal(email, goalId) {
+    await changeUserData(email, (data) => ({ goals: (data.goals || []).filter((goal) => goal.id !== goalId) }));
 }
 
 // Remember the local calendar day of the last dashboard open so the recap
