@@ -3,184 +3,224 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#081426">
-    <title>Sesame — Website limits</title>
+    <meta name="theme-color" content="#16130f">
+    <title>Sesame</title>
     <style>
-        :root { color-scheme: dark; --ink: #e8efff; --muted: #9aaccb; --paper: #081426; --card: #101f35; --green: #5b8df7; --line: #263c5c; --red: #ff938e; --soft-blue: #142b4b; }
+        :root {
+            color-scheme: dark;
+            --ink: #f4efe6;
+            --muted: #b7a78c;
+            --paper: #14110d;
+            --card: #1c1812;
+            --gold: #d4a54a;
+            --sprout: #8fb35a;
+            --line: #3a3328;
+            --red: #d9896a;
+            --soft: #241f18;
+        }
         * { box-sizing: border-box; }
-        body { margin: 0; background: radial-gradient(ellipse at 50% -20%, #15345e 0, transparent 48%), var(--paper); color: var(--ink); font: 15px/1.5 ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
-        button, input, textarea { font: inherit; }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            color: var(--ink);
+            background: radial-gradient(ellipse at 0% 0%, #3a2c16 0, transparent 36%), var(--paper);
+            font: 14px/1.45 ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+        button, input, textarea, select { font: inherit; }
         button { cursor: pointer; }
-        .shell { max-width: 1020px; margin: auto; padding: 34px 24px 64px; }
-        header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 38px; }
-        .brand { display: flex; align-items: center; gap: 11px; font-weight: 750; font-size: 21px; letter-spacing: -.04em; }
-        .mark { width: 34px; height: 34px; display: grid; place-items: center; color: white; border-radius: 12px; background: linear-gradient(145deg, #79a5ff, #3267d9); box-shadow: 0 6px 18px #386edf55; font-size: 19px; }
-        .eyebrow { color: var(--green); font-size: 12px; font-weight: 750; letter-spacing: .12em; text-transform: uppercase; }
-        h1 { font-size: clamp(30px, 5vw, 43px); letter-spacing: -.045em; line-height: 1.1; margin: 8px 0 10px; }
-        h2 { font-size: 18px; letter-spacing: -.02em; margin: 0; }
-        p { margin: 0; color: var(--muted); }
-        .intro { margin-bottom: 25px; }
-        .card { background: linear-gradient(150deg, #11233d, #0e1b30); border: 1px solid var(--line); border-radius: 18px; box-shadow: 0 12px 34px #0003; }
-        .auth-card { max-width: 430px; margin: 30px auto; padding: 28px; }
-        .auth-card h1 { font-size: 30px; }
-        .field { display: grid; gap: 7px; margin-top: 17px; }
-        label { color: #b7c5df; font-size: 13px; font-weight: 650; }
-        input, textarea { min-width: 0; width: 100%; border: 1px solid #314866; border-radius: 10px; padding: 11px 12px; color: var(--ink); background: #0a1729; outline: none; }
-        input:focus, textarea:focus { border-color: var(--green); box-shadow: 0 0 0 3px #5b8df72b; }
-        textarea { min-height: 76px; resize: vertical; }
-        button.primary { border: 0; border-radius: 10px; padding: 11px 16px; color: white; background: var(--green); font-weight: 700; }
-        button.primary { box-shadow: 0 5px 15px #386edf2b; }
-        button.primary:hover { background: #4779e6; }
-        button.subtle { border: 1px solid var(--line); border-radius: 9px; padding: 8px 11px; color: var(--ink); background: #14243b; font-weight: 650; }
-        button.danger { color: var(--red); }
-        .auth-actions { display: flex; gap: 10px; margin-top: 22px; }
-        .auth-actions button { flex: 1; }
-        .text-button { border: 0; padding: 9px 0 0; color: var(--green); background: transparent; font-size: 13px; font-weight: 650; }
-        .message { min-height: 22px; margin-top: 13px; color: var(--red); font-size: 13px; }
-        .message.good { color: #83d9b7; }
-        .topline { display: flex; align-items: end; justify-content: space-between; gap: 18px; margin-bottom: 22px; }
-        .userline { display: flex; align-items: center; gap: 14px; color: var(--muted); font-size: 13px; }
-        .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 13px; margin: 24px 0; }
-        .stat { padding: 18px 20px; position: relative; overflow: hidden; }
-        .stat::after { position: absolute; width: 85px; height: 85px; right: -30px; top: -38px; border: 1px solid #7da6ff22; border-radius: 50%; box-shadow: 0 0 0 12px #7da6ff08; content: ""; }
-        .stat-label { color: var(--muted); font-size: 12px; font-weight: 650; }
-        .stat-value { margin-top: 5px; font-size: 25px; font-weight: 750; letter-spacing: -.04em; }
-        .panel { padding: 24px; }
-        .tab-bar { display: flex; gap: 8px; flex-wrap: wrap; margin: 10px 0 14px; }
-        .tab-button { border: 1px solid var(--line); border-radius: 999px; padding: 9px 15px; color: #bac9e3; background: #101f35; font-weight: 700; transition: .18s ease; }
-        .tab-button:hover { border-color: #5779af; background: #142946; }
-        .tab-button[aria-selected="true"] { color: white; border-color: var(--green); background: var(--green); }
-        .tab-panel { margin-bottom: 14px; }
-        .section-form { display: flex; flex-wrap: wrap; align-items: center; gap: 9px; padding: 14px; border: 1px solid var(--line); border-radius: 13px; background: #0c1a2d; margin-bottom: 17px; }
-        .task-form, .economy-form { display: grid; grid-template-columns: minmax(180px, 1fr) 140px auto; gap: 10px; padding: 14px; border: 1px solid var(--line); border-radius: 13px; background: #0c1a2d; margin-bottom: 17px; }
-        .task-form textarea, .economy-form textarea { grid-column: 1 / -1; }
-        .form-wide { grid-column: 1 / -1; }
-        .check-field { display: inline-flex; align-items: center; gap: 9px; color: #b7c5df; font-size: 13px; font-weight: 650; }
-        .check-field input { width: 17px; height: 17px; accent-color: var(--green); }
-        .task-copy { display: grid; gap: 4px; min-width: 0; }
-        .task-description, .economy-description { color: var(--muted); font-size: 13px; overflow-wrap: anywhere; }
-        .task-tags { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 3px; }
-        .coin-card { align-items: flex-start; }
-        .coin-card .task-copy { flex: 1; }
-        .section-form input[type="text"] { flex: 1 1 210px; }
-        .section-form input[type="number"] { width: 120px; }
-        .section-form input[type="time"] { width: 145px; }
-        .item-list { display: grid; gap: 9px; }
-        .list-item { display: flex; justify-content: space-between; align-items: center; gap: 14px; padding: 14px 16px; border: 1px solid #293f5f; border-radius: 13px; background: linear-gradient(130deg, #142742, #102038); box-shadow: 0 5px 15px #0002; }
-        .list-item:not(.task-card) { transition: border-color .18s ease, transform .18s ease; }
-        .list-item:not(.task-card):hover { border-color: #557bb8; transform: translateY(-1px); }
-        .list-item.completed .item-title { color: var(--muted); text-decoration: line-through; }
-        .item-title { font-weight: 700; }
-        .item-meta { color: #9fb1d1; font-size: 12px; }
-        .item-actions { display: flex; align-items: center; gap: 8px; }
-        .panel-head { display: flex; justify-content: space-between; align-items: center; gap: 15px; margin-bottom: 17px; }
-        .add-form { display: grid; grid-template-columns: minmax(180px, 1fr) 175px auto; gap: 9px; padding: 14px; border: 1px solid var(--line); border-radius: 13px; background: #0c1a2d; }
-        .table-wrap { overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; margin-top: 14px; text-align: left; }
-        th { padding: 11px 10px; color: #9fb1d1; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; font-weight: 750; }
-        td { padding: 14px 10px; border-top: 1px solid var(--line); vertical-align: middle; }
-        td.site { font-weight: 700; }
-        .limit-control { display: flex; align-items: center; gap: 8px; max-width: 205px; }
-        .limit-control input { width: 82px; padding: 8px; }
-        .limit-control span { color: var(--muted); font-size: 12px; }
-        .empty { padding: 30px 12px; text-align: center; color: var(--muted); border-top: 1px solid var(--line); }
-        .planner-hero { display: flex; align-items: center; justify-content: space-between; gap: 22px; margin: 0 0 18px; padding: 22px; border: 1px solid #385b8c; border-radius: 17px; background: radial-gradient(circle at 100% 0, #4a74bb66, transparent 36%), linear-gradient(125deg, #18365e, #12233c); box-shadow: 0 12px 28px #0003; }
-        .planner-copy { display: flex; align-items: center; gap: 15px; }
-        .planner-icon { width: 48px; height: 48px; display: grid; flex: none; place-items: center; border: 1px solid #a8c3ff55; border-radius: 15px; color: #dce8ff; background: #80aaff24; font-size: 22px; }
-        .planner-hero h3 { margin: 0 0 3px; font-size: 17px; letter-spacing: -.025em; }
-        .planner-hero p { max-width: 390px; font-size: 13px; }
-        .hero-metrics { display: flex; gap: 22px; }
-        .hero-stat { min-width: 76px; text-align: right; }
-        .hero-stat strong { display: block; color: #f1f5ff; font-size: 23px; line-height: 1.1; }
-        .hero-stat span { color: #b3c5e5; font-size: 11px; }
-        .board-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 20px 0 11px; }
-        .board-heading h3 { margin: 0; font-size: 14px; }
-        .board-progress { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 12px; }
-        .progress-track { width: 92px; height: 6px; overflow: hidden; border-radius: 99px; background: #243854; }
-        .progress-fill { width: 0; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #5b8df7, #86b4ff); transition: width .25s ease; }
-        .task-card { align-items: center; padding: 15px 16px; }
-        .task-main { display: flex; align-items: center; min-width: 0; gap: 12px; }
-        .task-check { width: 20px; height: 20px; display: grid; flex: none; place-items: center; border: 1px solid #54729d; border-radius: 7px; color: #94b5ff; background: #1c3557; font-size: 12px; }
-        .completed .task-check { color: #a6f0d1; border-color: #397b6e; background: #1a4949; }
-        .task-status { padding: 4px 8px; border: 1px solid #345581; border-radius: 999px; color: #c2d5ff; background: #1d3b66; font-size: 10px; font-weight: 750; letter-spacing: .04em; text-transform: uppercase; }
-        .completed .task-status { color: #a6f0d1; border-color: #32685e; background: #153d3b; }
-        .reward-pill { padding: 5px 9px; border: 1px solid #54472d; border-radius: 999px; color: #f2d78c; background: #322b1d; font-size: 11px; font-weight: 750; white-space: nowrap; }
-        .empty-card { padding: 22px 16px; border: 1px dashed #344b6d; border-radius: 13px; color: var(--muted); background: #0c1a2d; text-align: center; }
-        .footnote { margin-top: 15px; font-size: 12px; }
         [hidden] { display: none !important; }
-        /* Refined dashboard styling */
-        :root { --paper:#07111f; --card:#0e1c30; --line:#223958; --green:#6b9cff; --muted:#9fb1cf; }
-        body { min-height:100vh; background:radial-gradient(ellipse at 50% -15%, #1d4478 0, transparent 45%), linear-gradient(180deg,#091629 0%,#07111f 58%); }
-        .shell { max-width:1160px; padding-top:40px; }
-        header { margin-bottom:48px; }
-        .brand { font-size:23px; letter-spacing:-.05em; }
-        .mark { width:40px; height:40px; border-radius:14px; font-size:21px; }
-        .eyebrow { letter-spacing:.14em; }
-        h1 { font-weight:760; }
-        .topline { margin-bottom:28px; }
-        .topline > div:first-child p { font-size:16px; }
-        .card { border-color:#294364; background:linear-gradient(145deg,#11243d,#0c192b 78%); box-shadow:0 20px 55px #0004, inset 0 1px #ffffff08; }
-        .stat { min-height:108px; padding:21px 23px; }
-        .stat-value { font-size:28px; }
-        .tab-bar { gap:9px; margin:12px 0 17px; padding-bottom:3px; }
-        .tab-button { padding:10px 17px; border-color:transparent; background:#0e1c30; }
-        .tab-button[aria-selected="true"] { box-shadow:0 6px 18px #4c82ee38; }
-        .panel { padding:28px; border-radius:20px; }
-        .panel-head { margin-bottom:21px; }
-        .panel-head p { margin-top:4px; }
-        .add-form, .task-form, .economy-form, .section-form { padding:17px; border-radius:15px; background:#091729; }
-        input, textarea { border-color:#2a4263; background:#081526; }
-        input:hover, textarea:hover { border-color:#47658c; }
-        button.primary { background:linear-gradient(135deg,#6b9cff,#477de9); }
-        button.primary:hover { background:linear-gradient(135deg,#82adff,#5689f1); transform:translateY(-1px); }
-        button.subtle { background:#142843; }
-        button.subtle:hover { border-color:#6386bb; background:#1a3557; }
-        .list-item { padding:16px 18px; border-color:#2a4263; background:linear-gradient(135deg,#132844,#102038); }
-        table { border-spacing:0; }
-        th { padding-top:14px; padding-bottom:14px; }
-        td { border-top-color:#233a58; }
-        tbody tr:hover { background:#ffffff04; }
-        .limit-control { max-width:none; }
-        .limit-control input { width:88px; }
-        .limit-control button { white-space:nowrap; }
-        .usage-local { color:#a9bddb; font-size:12px; }
-        .footnote code { color:#bbd0f3; }
-        .auth-card { padding:34px; border-radius:22px; }
-        .auth-card > p { margin-bottom:3px; }
+        .app { min-height: 100vh; }
+        .app.signed-in { display: grid; grid-template-columns: 210px 1fr; }
+        .sidebar {
+            position: sticky;
+            top: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            height: 100vh;
+            padding: 18px 12px;
+            border-right: 1px solid var(--line);
+            background: #120f0c;
+        }
+        .brand { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; font-weight: 750; letter-spacing: -.04em; }
+        .mark {
+            width: 26px; height: 26px; display: grid; place-items: center;
+            border-radius: 8px; color: #2b2112;
+            background: linear-gradient(145deg, #f0d48a, #c48a2a);
+            font-size: 14px;
+        }
+        .seed-balance {
+            display: flex; align-items: baseline; justify-content: space-between;
+            margin-bottom: 12px; padding: 10px 11px;
+            border: 1px solid #5a4a2c; border-radius: 10px; background: #2a2216;
+        }
+        .seed-balance span { color: var(--muted); font-size: 11px; font-weight: 650; }
+        .seed-balance strong { font-size: 18px; letter-spacing: -.03em; }
+        .nav-btn {
+            display: flex; align-items: center; gap: 8px;
+            width: 100%; border: 0; border-radius: 9px; padding: 8px 10px;
+            color: #d8ccb8; background: transparent; font-weight: 650; text-align: left;
+        }
+        .nav-btn:hover { background: #241e16; }
+        .nav-btn[aria-selected="true"] { color: #20180c; background: var(--gold); }
+        .nav-spacer { flex: 1; }
+        .user-email { overflow: hidden; margin: 8px 4px 6px; color: var(--muted); font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+        .shell { max-width: 980px; margin: 0 auto; padding: 22px 22px 48px; }
+        h1 { margin: 0 0 4px; font-size: 24px; letter-spacing: -.04em; }
+        h2 { margin: 0; font-size: 16px; letter-spacing: -.02em; }
+        h3 { margin: 0; font-size: 13px; }
+        p { margin: 0; color: var(--muted); }
+        .eyebrow { color: var(--gold); font-size: 11px; font-weight: 750; letter-spacing: .12em; text-transform: uppercase; }
+        .card { background: linear-gradient(160deg, #211c16, #18140f); border: 1px solid var(--line); border-radius: 12px; }
+        .auth-card { max-width: 400px; margin: 48px auto; padding: 22px; }
+        .field { display: grid; gap: 5px; margin-top: 12px; }
+        label { color: #cbbca3; font-size: 12px; font-weight: 650; }
+        input, textarea, select {
+            min-width: 0; width: 100%;
+            border: 1px solid #4a3f30; border-radius: 8px; padding: 8px 10px;
+            color: var(--ink); background: #120f0c; outline: none;
+        }
+        input:focus, textarea:focus { border-color: var(--gold); box-shadow: 0 0 0 3px #d4a54a22; }
+        textarea { min-height: 58px; resize: vertical; }
+        button.primary {
+            border: 0; border-radius: 8px; padding: 8px 12px; color: #22190c;
+            background: linear-gradient(135deg, #e2c06a, #c4922e); font-weight: 720;
+        }
+        button.primary:hover { filter: brightness(1.06); }
+        button.subtle { border: 1px solid var(--line); border-radius: 8px; padding: 6px 9px; color: var(--ink); background: #241e16; font-weight: 650; }
+        button.subtle:hover { border-color: #6a5a3c; }
+        button.danger { color: var(--red); }
+        .auth-actions { display: flex; gap: 8px; margin-top: 16px; }
+        .auth-actions button { flex: 1; }
+        .text-button { border: 0; padding: 8px 0 0; color: var(--gold); background: transparent; font-size: 12px; font-weight: 650; }
+        .message { min-height: 18px; margin: 8px 0; color: var(--red); font-size: 12px; }
+        .message.good { color: #b6d98a; }
+        .page-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+        .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
+        .stat { padding: 10px 12px; }
+        .stat-label { color: var(--muted); font-size: 11px; font-weight: 650; }
+        .stat-value { margin-top: 2px; font-size: 20px; font-weight: 750; letter-spacing: -.03em; }
+        .panel { padding: 16px; }
+        .panel-head { margin-bottom: 12px; }
+        .panel-head p { margin-top: 2px; font-size: 13px; }
+        .add-form, .task-form, .economy-form, .section-form {
+            display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+            margin-bottom: 12px; padding: 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--soft);
+        }
+        .task-form, .economy-form { display: grid; grid-template-columns: minmax(160px, 1fr) 110px auto; }
+        .task-form textarea, .economy-form textarea, .form-wide { grid-column: 1 / -1; }
+        .check-field { display: inline-flex; align-items: center; gap: 7px; color: #cbbca3; font-size: 12px; font-weight: 650; }
+        .check-field input { width: 15px; height: 15px; accent-color: var(--gold); }
+        .item-list { display: grid; gap: 7px; }
+        .list-item {
+            display: flex; justify-content: space-between; align-items: center; gap: 10px;
+            padding: 10px 12px; border: 1px solid #3f362b; border-radius: 10px; background: #201b15;
+        }
+        .list-item.completed .item-title { color: var(--muted); text-decoration: line-through; }
+        .item-title { font-weight: 700; font-size: 14px; }
+        .item-meta { color: #c2b49a; font-size: 11px; }
+        .item-actions { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+        .task-copy { display: grid; gap: 2px; min-width: 0; flex: 1; }
+        .task-description, .economy-description { color: var(--muted); font-size: 12px; overflow-wrap: anywhere; }
+        .task-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 2px; }
+        .task-main { display: flex; align-items: center; min-width: 0; gap: 9px; }
+        .task-check {
+            width: 16px; height: 16px; display: grid; flex: none; place-items: center;
+            border: 1px solid #6a5a3c; border-radius: 5px; color: var(--sprout); background: #2a2418; font-size: 10px;
+        }
+        .task-status {
+            padding: 2px 7px; border: 1px solid #4a3f30; border-radius: 999px;
+            color: #e6d7b8; background: #2a2418; font-size: 10px; font-weight: 750; text-transform: uppercase;
+        }
+        .completed .task-status { color: #c5e39a; border-color: #4a6230; background: #1d2814; }
+        .reward-pill {
+            padding: 3px 8px; border: 1px solid #5a4a2c; border-radius: 999px;
+            color: #f0d48a; background: #2a2216; font-size: 11px; font-weight: 750; white-space: nowrap;
+        }
+        .empty, .empty-card { padding: 18px 10px; text-align: center; color: var(--muted); }
+        .empty-card { border: 1px dashed #4a3f30; border-radius: 10px; background: var(--soft); }
+        .table-wrap { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th { padding: 8px 8px; color: #c2b49a; font-size: 10px; letter-spacing: .08em; text-transform: uppercase; font-weight: 750; }
+        td { padding: 10px 8px; border-top: 1px solid var(--line); vertical-align: middle; }
+        td.site { font-weight: 700; }
+        .limit-control, .rate-control { display: flex; align-items: center; gap: 6px; }
+        .limit-control input, .rate-control input { width: 72px; padding: 6px 8px; }
+        .limit-control span, .rate-control span { color: var(--muted); font-size: 11px; white-space: nowrap; }
+        .footnote { margin-top: 10px; font-size: 11px; }
+        .board-heading { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 4px 0 8px; }
+        .board-progress { display: flex; align-items: center; gap: 7px; color: var(--muted); font-size: 12px; }
+        .progress-track { width: 72px; height: 5px; overflow: hidden; border-radius: 99px; background: #3a3328; }
+        .progress-fill { width: 0; height: 100%; background: linear-gradient(90deg, #c4922e, #e2c06a); }
+        .split { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .split .card { padding: 14px; }
+        .todo-hero {
+            display: flex; align-items: center; justify-content: space-between; gap: 12px;
+            margin-bottom: 12px; padding: 12px 14px;
+            border: 1px solid #5a4a2c; border-radius: 12px;
+            background: linear-gradient(120deg, #2c2418, #1a1611);
+        }
+        .hero-metrics { display: flex; gap: 18px; }
+        .hero-stat { text-align: right; }
+        .hero-stat strong { display: block; font-size: 20px; line-height: 1.1; }
+        .hero-stat span { color: var(--muted); font-size: 11px; }
+        .recap {
+            position: fixed; inset: 0; z-index: 20;
+            display: grid; place-items: center; padding: 20px;
+            background: #0c0a08cc;
+        }
+        .recap-card { width: min(460px, 100%); padding: 20px; }
+        .recap-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin: 14px 0; }
+        .recap-stat { padding: 10px; text-align: center; }
+        .recap-stat strong { display: block; font-size: 22px; }
+        .recap-stat.gain strong { color: #b6d98a; }
+        .recap-stat.loss strong { color: var(--red); }
+        .recap-tasks { display: grid; gap: 6px; margin: 0 0 14px; padding: 0; list-style: none; }
+        .recap-tasks li { padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--soft); font-size: 13px; }
+        @media (max-width: 820px) {
+            .app.signed-in { grid-template-columns: 1fr; }
+            .sidebar {
+                position: static; height: auto; flex-direction: row; flex-wrap: wrap;
+                align-items: center; padding: 10px 12px;
+            }
+            .brand { margin: 0 8px 0 0; }
+            .seed-balance { margin: 0; }
+            .nav-btn { width: auto; }
+            .nav-spacer { display: none; }
+            .split { grid-template-columns: 1fr; }
+        }
         @media (max-width: 650px) {
-            .shell { padding: 22px 14px 40px; }
-            header { margin-bottom: 28px; }
-            .topline { align-items: start; flex-direction: column; }
-            .stats { gap: 8px; }
-            .stat { padding: 13px; }
-            .stat-value { font-size: 20px; }
-            .panel { padding: 15px; }
-            .planner-hero { align-items: flex-start; flex-direction: column; padding: 17px; }
-            .hero-metrics { width: 100%; justify-content: space-between; padding-left: 62px; }
-            .hero-stat { text-align: left; }
-            .list-item { align-items: flex-start; flex-direction: column; }
-            .item-actions { width: 100%; justify-content: flex-end; flex-wrap: wrap; }
-            .add-form { grid-template-columns: 1fr 1fr; }
-            .add-form input:first-child { grid-column: 1 / -1; }
-            .add-form button { grid-column: 1 / -1; }
-            .task-form, .economy-form { grid-template-columns: minmax(0, 1fr) minmax(90px, .7fr); }
+            .shell { padding: 16px 12px 32px; }
+            .stats, .recap-grid { grid-template-columns: 1fr; }
+            .task-form, .economy-form { grid-template-columns: 1fr 1fr; }
             .task-form button, .economy-form button { grid-column: 1 / -1; }
-            table { min-width: 620px; }
+            .list-item { align-items: flex-start; flex-direction: column; }
+            .todo-hero { flex-direction: column; align-items: flex-start; }
+            .hero-stat { text-align: left; }
+            table { min-width: 640px; }
         }
     </style>
 </head>
 <body>
-    <div class="shell">
-        <header>
+    <div class="app" id="appShell">
+        <aside class="sidebar" id="sidebar" hidden>
             <div class="brand"><span class="mark" aria-hidden="true">s</span> sesame</div>
-            <div class="eyebrow">Your focus, at a glance</div>
-        </header>
+            <div class="seed-balance"><span>Seeds</span><strong id="sidebarSeeds">0</strong></div>
+            <button class="nav-btn" type="button" data-tab="todo" aria-selected="true">To-do</button>
+            <button class="nav-btn" type="button" data-tab="limits" aria-selected="false">Limits</button>
+            <button class="nav-btn" type="button" data-tab="productivity" aria-selected="false">Focus sites</button>
+            <button class="nav-btn" type="button" data-tab="economy" aria-selected="false">Rewards</button>
+            <button class="nav-btn" type="button" data-tab="sleep" aria-selected="false">Sleep</button>
+            <div class="nav-spacer"></div>
+            <div class="user-email" id="userEmail"></div>
+            <button class="subtle" id="signOutButton" type="button">Sign out</button>
+        </aside>
 
-        <main>
+        <div class="shell">
             <section id="authView" class="card auth-card">
                 <div class="eyebrow">Sesame account</div>
-                <h1>Sign in to your dashboard</h1>
-                <p>Manage blocked websites and daily time limits.</p>
+                <h1>Sign in to your garden</h1>
+                <p>Manage blocked sites, tasks, and seed rewards.</p>
                 <form id="authForm">
                     <div class="field"><label for="email">Email</label><input id="email" type="email" autocomplete="email" required></div>
                     <div class="field"><label for="password">Password</label><input id="password" type="password" autocomplete="current-password" minlength="6" required></div>
@@ -194,141 +234,179 @@
             </section>
 
             <section id="dashboard" hidden>
-                <div class="topline">
-                    <div>
-                        <div class="eyebrow">Website overview</div>
-                        <h1>Your blocked sites</h1>
-                        <p>See usage and adjust each site's daily allowance.</p>
+                <div id="dashboardMessage" class="message" role="status" aria-live="polite"></div>
+
+                <section id="todoPanel" class="tab-panel" data-tab-panel="todo">
+                    <div class="page-head">
+                        <div>
+                            <div class="eyebrow">Today</div>
+                            <h1>Your to-do list</h1>
+                            <p>Plan the day. Finished tasks grow seeds.</p>
+                        </div>
                     </div>
-                    <div class="userline"><span id="userEmail"></span><button class="subtle" id="signOutButton" type="button">Sign out</button></div>
-                </div>
+                    <div class="stats">
+                        <div class="card stat"><div class="stat-label">Seeds</div><div class="stat-value" id="coinCount">0</div></div>
+                        <div class="card stat"><div class="stat-label">Blocked sites</div><div class="stat-value" id="blockedCount">0</div></div>
+                        <div class="card stat"><div class="stat-label">Focus sites</div><div class="stat-value" id="focusCount">0</div></div>
+                    </div>
+                    <div class="card panel">
+                        <div class="todo-hero">
+                            <div>
+                                <h3>Task board</h3>
+                                <p>Daily tasks reset each morning. One-time tasks leave the list when done.</p>
+                            </div>
+                            <div class="hero-metrics">
+                                <div class="hero-stat"><strong id="todoOpenCount">0</strong><span>up next</span></div>
+                                <div class="hero-stat"><strong id="todoCompleteCount">0</strong><span>done today</span></div>
+                            </div>
+                        </div>
+                        <form id="todoForm" class="task-form">
+                            <input id="todoTitleInput" type="text" placeholder="Task name" aria-label="Task name" required maxlength="120">
+                            <input id="todoRewardInput" type="number" min="1" step="1" value="1" aria-label="Seed reward" required placeholder="Seeds">
+                            <button class="primary" type="submit">Add task</button>
+                            <textarea id="todoDescriptionInput" class="form-wide" maxlength="500" placeholder="Details (optional)" aria-label="Task details"></textarea>
+                            <label class="check-field form-wide"><input id="todoRecurringInput" type="checkbox"> Repeat every day</label>
+                        </form>
+                        <div class="board-heading">
+                            <h3>Open work</h3>
+                            <div class="board-progress">
+                                <span id="todoProgressLabel">0% complete</span>
+                                <div class="progress-track"><div id="todoProgressFill" class="progress-fill"></div></div>
+                            </div>
+                        </div>
+                        <div id="todoList" class="item-list"></div>
+                    </div>
+                </section>
 
-                <div class="stats">
-                    <div class="card stat"><div class="stat-label">Blocked sites</div><div class="stat-value" id="blockedCount">0</div></div>
-                    <div class="card stat"><div class="stat-label">Usage tracking</div><div class="stat-value" id="trackedTime">Extension</div></div>
-                    <div class="card stat"><div class="stat-label">Sesame coins</div><div class="stat-value" id="coinCount">0</div></div>
-                </div>
-
-                <nav class="tab-bar" role="tablist" aria-label="Sesame settings">
-                    <button class="tab-button" type="button" role="tab" data-tab="limits" aria-selected="true">Limits</button>
-                    <button class="tab-button" type="button" role="tab" data-tab="productivity" aria-selected="false">Productivity</button>
-                    <button class="tab-button" type="button" role="tab" data-tab="todo" aria-selected="false">To-do</button>
-                    <button class="tab-button" type="button" role="tab" data-tab="rewards" aria-selected="false">Rewards</button>
-                    <button class="tab-button" type="button" role="tab" data-tab="penalties" aria-selected="false">Mistakes</button>
-                    <button class="tab-button" type="button" role="tab" data-tab="sleep" aria-selected="false">Sleep mode</button>
-                </nav>
-
-                <section id="limitsPanel" class="card panel tab-panel" data-tab-panel="limits">
-                    <div class="panel-head"><h2>Blocked websites and daily limits</h2></div>
+                <section id="limitsPanel" class="card panel tab-panel" data-tab-panel="limits" hidden>
+                    <div class="panel-head">
+                        <h2>Blocked websites</h2>
+                        <p>Daily allowance in minutes. Extra minutes cost the site's seed rate.</p>
+                    </div>
                     <form id="addSiteForm" class="add-form">
                         <input id="siteInput" type="text" placeholder="example.com" aria-label="Website domain" required>
-                        <input id="siteLimitInput" type="number" min="0" step="1" value="60" aria-label="Daily time limit in minutes; 0 blocks forever" required>
+                        <input id="siteLimitInput" type="number" min="0" step="1" value="60" aria-label="Daily time limit in minutes" required>
+                        <input id="siteRateInput" type="number" min="0" step="0.25" value="1" aria-label="Seeds charged per extra minute" required>
                         <button class="primary" type="submit">Block website</button>
                     </form>
-                    <div id="dashboardMessage" class="message" role="status" aria-live="polite"></div>
                     <div class="table-wrap">
                         <table id="sitesTable" hidden>
-                            <thead><tr><th>Website</th><th>Usage</th><th>Daily allowance</th></tr></thead>
+                            <thead>
+                                <tr>
+                                    <th>Website</th>
+                                    <th>Daily allowance</th>
+                                    <th>Seeds / extra min</th>
+                                </tr>
+                            </thead>
                             <tbody id="sitesBody"></tbody>
                         </table>
-                        <div id="emptyState" class="empty">No blocked websites yet. Add a domain above to get started.</div>
+                        <div id="emptyState" class="empty">No blocked websites yet.</div>
                     </div>
-                    <p class="footnote">Set a daily limit in minutes. Set it to 0 to block the site all day. Limits sync through Firestore; usage and coin purchases stay on this device and appear in the extension popup.</p>
+                    <p class="footnote">0 minutes blocks the site all day. Usage lives on this device in the extension. Default rate is 1 seed per extra minute.</p>
                 </section>
 
                 <section id="productivityPanel" class="card panel tab-panel" data-tab-panel="productivity" hidden>
-                    <div class="panel-head"><div><h2>Productivity sites</h2><p>Earn 1 coin for each focused minute on these sites.</p></div></div>
-                    <div class="planner-hero">
-                        <div class="planner-copy"><div class="planner-icon" aria-hidden="true">◷</div><div><h3>Today's focus</h3><p>Time on these sites builds coins while you stay on task.</p></div></div>
-                        <div class="hero-metrics"><div class="hero-stat"><strong id="productiveToday">0m</strong><span>focused today</span></div><div class="hero-stat"><strong id="focusCoinsToday">0</strong><span>coins earned</span></div></div>
+                    <div class="panel-head">
+                        <h2>Focus sites</h2>
+                        <p>Time on these sites earns seeds in the extension. Sesame does not upload that browsing time.</p>
                     </div>
                     <form id="productiveSiteForm" class="section-form">
-                        <input id="productiveSiteInput" type="text" placeholder="example.com" aria-label="Productivity website domain" required>
-                        <button class="primary" type="submit">Add productive site</button>
+                        <input id="productiveSiteInput" type="text" placeholder="example.com" aria-label="Focus website domain" required>
+                        <input id="productiveRateInput" type="number" min="0" step="0.25" value="1" aria-label="Seeds earned per minute" required>
+                        <button class="primary" type="submit">Add focus site</button>
                     </form>
                     <div id="productiveSiteList" class="item-list"></div>
                 </section>
 
-                <section id="todoPanel" class="card panel tab-panel" data-tab-panel="todo" hidden>
-                    <div class="panel-head"><div><h2>To-do list</h2><p>Plan your day, add context, and earn coins as you complete tasks.</p></div></div>
-                    <div class="planner-hero">
-                        <div class="planner-copy"><div class="planner-icon" aria-hidden="true">✓</div><div><h3>Your task plan</h3><p>One-time tasks disappear when completed. Daily tasks reset each day and can earn their reward again.</p></div></div>
-                        <div class="hero-metrics"><div class="hero-stat"><strong id="todoOpenCount">0</strong><span>up next</span></div><div class="hero-stat"><strong id="todoCompleteCount">0</strong><span>completed</span></div></div>
+                <section id="economyPanel" class="tab-panel" data-tab-panel="economy" hidden>
+                    <div class="page-head">
+                        <div>
+                            <div class="eyebrow">Garden ledger</div>
+                            <h1>Rewards and mistakes</h1>
+                            <p>Spend seeds on treats. Apply a penalty when you want the reminder.</p>
+                        </div>
                     </div>
-                    <form id="todoForm" class="task-form">
-                        <input id="todoTitleInput" type="text" placeholder="Task name" aria-label="Task name" required maxlength="120">
-                        <input id="todoRewardInput" type="number" min="1" step="1" value="1" aria-label="Coin reward" required placeholder="Coins">
-                        <button class="primary" type="submit">Add task</button>
-                        <textarea id="todoDescriptionInput" class="form-wide" maxlength="500" placeholder="Add details, notes, or steps (optional)" aria-label="Task details"></textarea>
-                        <label class="check-field form-wide"><input id="todoRecurringInput" type="checkbox"> Repeat every day</label>
-                    </form>
-                    <div class="board-heading"><h3>Task board</h3><div class="board-progress"><span id="todoProgressLabel">0% complete</span><div class="progress-track"><div id="todoProgressFill" class="progress-fill"></div></div></div></div>
-                    <div id="todoList" class="item-list"></div>
-                </section>
-
-                <section id="rewardsPanel" class="card panel tab-panel" data-tab-panel="rewards" hidden>
-                    <div class="panel-head"><div><h2>Real-life rewards</h2><p>Create rewards for yourself and spend coins when you claim them.</p></div></div>
-                    <div class="planner-hero">
-                        <div class="planner-copy"><div class="planner-icon" aria-hidden="true">✦</div><div><h3>Make your coins count</h3><p>Set your own goals, from a favorite snack to a day out.</p></div></div>
-                        <div class="hero-metrics"><div class="hero-stat"><strong id="rewardCoinBalance">0</strong><span>coins available</span></div></div>
+                    <div class="split">
+                        <div class="card">
+                            <div class="panel-head"><h2>Rewards</h2><p>Claim something you earned.</p></div>
+                            <form id="rewardForm" class="economy-form">
+                                <input id="rewardTitleInput" type="text" placeholder="Reward name" aria-label="Reward name" required maxlength="120">
+                                <input id="rewardCostInput" type="number" min="1" step="1" placeholder="Seeds" aria-label="Seed cost" required>
+                                <button class="primary" type="submit">Add</button>
+                                <textarea id="rewardDescriptionInput" class="form-wide" maxlength="300" placeholder="Optional note" aria-label="Reward details"></textarea>
+                            </form>
+                            <div id="rewardList" class="item-list"></div>
+                        </div>
+                        <div class="card">
+                            <div class="panel-head"><h2>Mistakes</h2><p>Optional rules you apply yourself.</p></div>
+                            <form id="penaltyForm" class="economy-form">
+                                <input id="penaltyTitleInput" type="text" placeholder="Mistake name" aria-label="Penalty name" required maxlength="120">
+                                <input id="penaltyAmountInput" type="number" min="1" step="1" placeholder="Seeds" aria-label="Seeds to deduct" required>
+                                <button class="primary" type="submit">Add</button>
+                                <textarea id="penaltyDescriptionInput" class="form-wide" maxlength="300" placeholder="Optional note" aria-label="Penalty details"></textarea>
+                            </form>
+                            <div id="penaltyList" class="item-list"></div>
+                        </div>
                     </div>
-                    <form id="rewardForm" class="economy-form">
-                        <input id="rewardTitleInput" type="text" placeholder="Reward name" aria-label="Reward name" required maxlength="120">
-                        <input id="rewardCostInput" type="number" min="1" step="1" placeholder="Coin cost" aria-label="Coin cost" required>
-                        <button class="primary" type="submit">Add reward</button>
-                        <textarea id="rewardDescriptionInput" class="form-wide" maxlength="300" placeholder="What will you treat yourself to? (optional)" aria-label="Reward details"></textarea>
-                    </form>
-                    <div id="rewardList" class="item-list"></div>
-                </section>
-
-                <section id="penaltiesPanel" class="card panel tab-panel" data-tab-panel="penalties" hidden>
-                    <div class="panel-head"><div><h2>Mistakes and coin penalties</h2><p>Set a voluntary consequence for a habit you want to keep. Apply it any time.</p></div></div>
-                    <div class="planner-hero">
-                        <div class="planner-copy"><div class="planner-icon" aria-hidden="true">↘</div><div><h3>Your own accountability rules</h3><p>Penalties are optional, user-created, and subtract coins immediately when applied.</p></div></div>
-                        <div class="hero-metrics"><div class="hero-stat"><strong id="penaltyCoinBalance">0</strong><span>current coins</span></div></div>
-                    </div>
-                    <form id="penaltyForm" class="economy-form">
-                        <input id="penaltyTitleInput" type="text" placeholder="Mistake, e.g. skipped workout" aria-label="Penalty name" required maxlength="120">
-                        <input id="penaltyAmountInput" type="number" min="1" step="1" placeholder="Coins to deduct" aria-label="Coins to deduct" required>
-                        <button class="primary" type="submit">Add penalty</button>
-                        <textarea id="penaltyDescriptionInput" class="form-wide" maxlength="300" placeholder="Add a note (optional)" aria-label="Penalty details"></textarea>
-                    </form>
-                    <div id="penaltyList" class="item-list"></div>
                 </section>
 
                 <section id="sleepPanel" class="card panel tab-panel" data-tab-panel="sleep" hidden>
-                    <div class="panel-head"><div><h2>Sleep mode</h2><p>Permanent blocks stay configured until removed; a coin opens one minute when a sleep block is active. Schedules repeat daily in local time.</p></div></div>
+                    <div class="panel-head">
+                        <h2>Sleep mode</h2>
+                        <p>Permanent blocks stay until removed. Extra minutes still cost that site's seed rate. Schedules use local time.</p>
+                    </div>
                     <form id="sleepSiteForm" class="section-form">
                         <input id="sleepSiteInput" type="text" placeholder="example.com" aria-label="Permanently blocked website" required>
                         <button class="primary" type="submit">Block permanently</button>
                     </form>
                     <div id="sleepSiteList" class="item-list"></div>
-                    <h2 style="margin:20px 0 12px">Daily scheduled blocks</h2>
+                    <h2 style="margin:16px 0 8px">Daily scheduled blocks</h2>
                     <form id="sleepScheduleForm" class="section-form">
                         <input id="scheduleDomainInput" type="text" placeholder="example.com" aria-label="Scheduled website domain" required>
-                        <label for="scheduleStartInput">From</label><input id="scheduleStartInput" type="time" aria-label="Schedule start time" required>
-                        <label for="scheduleEndInput">Until</label><input id="scheduleEndInput" type="time" aria-label="Schedule end time" required>
+                        <label for="scheduleStartInput">From</label>
+                        <input id="scheduleStartInput" type="time" aria-label="Schedule start time" required>
+                        <label for="scheduleEndInput">Until</label>
+                        <input id="scheduleEndInput" type="time" aria-label="Schedule end time" required>
                         <button class="primary" type="submit">Add daily block</button>
                     </form>
                     <div id="sleepScheduleList" class="item-list"></div>
                 </section>
             </section>
-        </main>
+        </div>
+    </div>
+
+    <div id="dailyRecap" class="recap" hidden>
+        <div class="card recap-card">
+            <div class="eyebrow">Yesterday</div>
+            <h1>Your seed recap</h1>
+            <p>A quick look at yesterday before you start today.</p>
+            <div class="recap-grid">
+                <div class="card recap-stat gain"><span class="stat-label">Gained</span><strong id="recapGained">0</strong></div>
+                <div class="card recap-stat loss"><span class="stat-label">Lost</span><strong id="recapLost">0</strong></div>
+                <div class="card recap-stat"><span class="stat-label">Balance</span><strong id="recapBalance">0</strong></div>
+            </div>
+            <h3 style="margin-bottom:8px">Tasks completed yesterday</h3>
+            <ul id="recapTasks" class="recap-tasks"></ul>
+            <button class="primary" id="recapDismiss" type="button" style="width:100%">Start today</button>
+        </div>
     </div>
 
     <script type="module">
         import {
             observeAuth, createAccount, signIn, resetPassword, signOutUser, setSiteTimeLimit,
             ensureUserData, watchUserData, addBlockedSite,
-            addProductiveSite, removeProductiveSite,
+            addProductiveSite, removeProductiveSite, setSiteSeedRate, setProductivitySeedRate,
             addTodoTask, completeTodoTask, removeTodoTask, addSleepModeSite,
             removeSleepModeSite, addSleepSchedule, removeSleepSchedule,
             addCoinReward, removeCoinReward, redeemCoinReward,
-            addCoinPenalty, removeCoinPenalty, redeemCoinPenalty
+            addCoinPenalty, removeCoinPenalty, redeemCoinPenalty,
+            recordDashboardLogin, localDateKey, normalizeSeedRate
         } from "./firestore.js";
 
         const authView = document.getElementById("authView");
         const dashboard = document.getElementById("dashboard");
+        const sidebar = document.getElementById("sidebar");
+        const appShell = document.getElementById("appShell");
         const authForm = document.getElementById("authForm");
         const authMessage = document.getElementById("authMessage");
         const dashboardMessage = document.getElementById("dashboardMessage");
@@ -337,10 +415,17 @@
         let currentUser = null;
         let stopWatching = null;
         let latestData = null;
+        let recapChecked = false;
 
         function showMessage(element, message, good = false) {
             element.textContent = message;
             element.classList.toggle("good", good);
+        }
+
+        function formatSeeds(value) {
+            const amount = Number(value) || 0;
+            if (Number.isInteger(amount)) return String(amount);
+            return amount.toFixed(2).replace(/0+$/, "").replace(/\.$/, "");
         }
 
         function readableError(error) {
@@ -365,17 +450,33 @@
             return url.hostname.toLowerCase();
         }
 
-        function formatDuration(seconds) {
-            const totalMinutes = Math.floor((Number(seconds) || 0) / 60);
-            const hours = Math.floor(totalMinutes / 60);
-            const minutes = totalMinutes % 60;
-            if (hours && minutes) return `${hours} hr ${minutes} min`;
-            if (hours) return `${hours} hr`;
-            return `${minutes} min`;
+        function yesterdayKey() {
+            const date = new Date();
+            date.setDate(date.getDate() - 1);
+            return localDateKey(date);
         }
 
-        function localDateKey(date = new Date()) {
-            return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+        function showDailyRecap(data) {
+            const recap = document.getElementById("dailyRecap");
+            const yesterday = data.dailySeedStats?.[yesterdayKey()] || {};
+            document.getElementById("recapGained").textContent = `+${formatSeeds(yesterday.gained || 0)}`;
+            document.getElementById("recapLost").textContent = `−${formatSeeds(yesterday.lost || 0)}`;
+            document.getElementById("recapBalance").textContent = formatSeeds(data.coins);
+            const list = document.getElementById("recapTasks");
+            list.replaceChildren();
+            const tasks = yesterday.completedTasks || [];
+            if (!tasks.length) {
+                const empty = document.createElement("li");
+                empty.textContent = "No tasks completed yesterday.";
+                list.append(empty);
+            } else {
+                for (const task of tasks) {
+                    const item = document.createElement("li");
+                    item.textContent = `${task.title}  ·  +${formatSeeds(task.reward)} seeds`;
+                    list.append(item);
+                }
+            }
+            recap.hidden = false;
         }
 
         function renderSiteCollection(containerId, sites, onRemove, meta = () => "") {
@@ -413,6 +514,63 @@
             }
         }
 
+        function renderFocusSites(sites, rates) {
+            const container = document.getElementById("productiveSiteList");
+            container.replaceChildren();
+            if (!sites.length) {
+                const empty = document.createElement("div");
+                empty.className = "empty-card";
+                empty.textContent = "Add a site you want to grow seeds on.";
+                container.append(empty);
+                return;
+            }
+            for (const domain of sites) {
+                const row = document.createElement("div");
+                row.className = "list-item";
+                const label = document.createElement("span");
+                label.className = "item-title";
+                label.textContent = domain;
+                const control = document.createElement("div");
+                control.className = "rate-control";
+                const input = document.createElement("input");
+                input.type = "number";
+                input.min = "0";
+                input.step = "0.25";
+                input.value = String(normalizeSeedRate(rates[domain], 1));
+                input.setAttribute("aria-label", `Seeds per minute for ${domain}`);
+                const suffix = document.createElement("span");
+                suffix.textContent = "seeds/min";
+                const save = document.createElement("button");
+                save.type = "button";
+                save.className = "subtle";
+                save.textContent = "Save";
+                save.addEventListener("click", async () => {
+                    const rate = Number(input.value);
+                    if (!Number.isFinite(rate) || rate < 0) {
+                        showMessage(dashboardMessage, "Enter 0 or a positive seed rate.");
+                        return;
+                    }
+                    try {
+                        await setProductivitySeedRate(currentUser.email, domain, rate);
+                        showMessage(dashboardMessage, `${domain} now earns ${formatSeeds(normalizeSeedRate(rate))} seeds per minute.`, true);
+                    } catch (error) {
+                        showMessage(dashboardMessage, readableError(error));
+                    }
+                });
+                const remove = document.createElement("button");
+                remove.type = "button";
+                remove.className = "subtle danger";
+                remove.textContent = "Remove";
+                remove.addEventListener("click", async () => {
+                    try { await removeProductiveSite(currentUser.email, domain); }
+                    catch (error) { showMessage(dashboardMessage, readableError(error)); }
+                });
+                control.append(input, suffix, save, remove);
+                row.append(label, control);
+                container.append(row);
+            }
+        }
+
         function renderTasks(tasks) {
             const list = document.getElementById("todoList");
             list.replaceChildren();
@@ -430,7 +588,7 @@
             if (!tasks.length) {
                 const empty = document.createElement("div");
                 empty.className = "empty-card";
-                empty.textContent = "Your list is clear. Add a task to plan your next win.";
+                empty.textContent = "Your list is clear. Add a task to plant the next one.";
                 list.append(empty);
                 return;
             }
@@ -468,7 +626,7 @@
                 actions.className = "item-actions";
                 const reward = document.createElement("span");
                 reward.className = "reward-pill";
-                reward.textContent = `${Number(task.reward) || 0} coins`;
+                reward.textContent = `${formatSeeds(task.reward)} seeds`;
                 const state = document.createElement("span");
                 state.className = "task-status";
                 state.textContent = completedToday ? "Done today" : "Up next";
@@ -480,7 +638,7 @@
                 complete.addEventListener("click", async () => {
                     try {
                         await completeTodoTask(currentUser.email, task.id);
-                        showMessage(dashboardMessage, `Task completed: +${Number(task.reward) || 0} coins.`, true);
+                        showMessage(dashboardMessage, `Task completed: +${formatSeeds(task.reward)} seeds.`, true);
                     } catch (error) { showMessage(dashboardMessage, readableError(error)); }
                 });
                 const remove = document.createElement("button");
@@ -504,8 +662,8 @@
                 const empty = document.createElement("div");
                 empty.className = "empty-card";
                 empty.textContent = type === "reward"
-                    ? "No rewards yet. Add something you would like to earn."
-                    : "No penalties yet. Add an accountability rule if you want one.";
+                    ? "No rewards yet. Add something worth growing toward."
+                    : "No mistakes listed. Add one only if you want the reminder.";
                 list.append(empty);
                 return;
             }
@@ -530,20 +688,20 @@
                 const amount = document.createElement("span");
                 amount.className = "reward-pill";
                 const value = Math.max(0, Number(type === "reward" ? item.cost : item.amount) || 0);
-                amount.textContent = type === "reward" ? `${value} coins` : `−${value} coins`;
+                amount.textContent = type === "reward" ? `${formatSeeds(value)} seeds` : `−${formatSeeds(value)} seeds`;
                 const redeem = document.createElement("button");
                 redeem.type = "button";
                 redeem.className = "subtle";
-                redeem.textContent = type === "reward" ? "Redeem" : "Apply penalty";
+                redeem.textContent = type === "reward" ? "Redeem" : "Apply";
                 redeem.disabled = type === "reward" && balance < value;
                 redeem.addEventListener("click", async () => {
                     try {
                         if (type === "reward") {
                             await redeemCoinReward(currentUser.email, item.id);
-                            showMessage(dashboardMessage, `Reward redeemed: −${value} coins.`, true);
+                            showMessage(dashboardMessage, `Reward redeemed: −${formatSeeds(value)} seeds.`, true);
                         } else {
                             await redeemCoinPenalty(currentUser.email, item.id);
-                            showMessage(dashboardMessage, `Penalty applied: −${value} coins.`, true);
+                            showMessage(dashboardMessage, `Penalty applied: −${formatSeeds(value)} seeds.`, true);
                         }
                     } catch (error) { showMessage(dashboardMessage, readableError(error)); }
                 });
@@ -567,17 +725,12 @@
             latestData = data || {};
             const sites = Array.isArray(latestData.blockedSites) ? latestData.blockedSites : [];
             const limits = latestData.siteTimeLimits || {};
-            const today = localDateKey();
-            const focusToday = latestData.productivityTimeByDay?.[today] || {};
-            const focusSeconds = Object.values(focusToday).reduce((sum, value) => sum + (Number(value) || 0), 0);
-            const focusCoins = Object.values(focusToday).reduce((sum, value) => sum + Math.floor((Number(value) || 0) / 60), 0);
-            document.getElementById("productiveToday").textContent = formatDuration(focusSeconds);
-            document.getElementById("focusCoinsToday").textContent = focusCoins;
+            const rates = latestData.siteSeedRates || {};
+            const seeds = Number(latestData.coins) || 0;
             document.getElementById("blockedCount").textContent = sites.length;
-            document.getElementById("trackedTime").textContent = "Extension";
-            document.getElementById("coinCount").textContent = Number(latestData.coins) || 0;
-            document.getElementById("rewardCoinBalance").textContent = Number(latestData.coins) || 0;
-            document.getElementById("penaltyCoinBalance").textContent = Number(latestData.coins) || 0;
+            document.getElementById("focusCount").textContent = (latestData.productivitySites || []).length;
+            document.getElementById("coinCount").textContent = formatSeeds(seeds);
+            document.getElementById("sidebarSeeds").textContent = formatSeeds(seeds);
 
             const body = document.getElementById("sitesBody");
             body.replaceChildren();
@@ -589,61 +742,108 @@
                 const siteCell = document.createElement("td");
                 siteCell.className = "site";
                 siteCell.textContent = domain;
-                const timeCell = document.createElement("td");
-                timeCell.className = "usage-local";
-                timeCell.textContent = "View in extension";
 
                 const limitCell = document.createElement("td");
                 const storedLimit = limits[domain];
                 const limitSeconds = storedLimit === undefined || storedLimit === null ? 3600 : Number(storedLimit);
                 const allowanceMinutes = Number.isFinite(limitSeconds) ? Math.max(0, Math.round(limitSeconds / 60)) : 60;
-                const control = document.createElement("div");
-                control.className = "limit-control";
-                const input = document.createElement("input");
-                input.type = "number";
-                input.min = "0";
-                input.step = "1";
-                input.value = String(allowanceMinutes);
-                input.setAttribute("aria-label", `Daily limit for ${domain} in minutes`);
-                const suffix = document.createElement("span");
-                suffix.textContent = "min/day";
-                const save = document.createElement("button");
-                save.type = "button";
-                save.className = "subtle";
-                save.textContent = "Save";
-                save.addEventListener("click", async () => {
-                    const minutes = Number(input.value);
+                const limitControl = document.createElement("div");
+                limitControl.className = "limit-control";
+                const limitInput = document.createElement("input");
+                limitInput.type = "number";
+                limitInput.min = "0";
+                limitInput.step = "1";
+                limitInput.value = String(allowanceMinutes);
+                limitInput.setAttribute("aria-label", `Daily limit for ${domain} in minutes`);
+                const limitSuffix = document.createElement("span");
+                limitSuffix.textContent = "min/day";
+                const saveLimit = document.createElement("button");
+                saveLimit.type = "button";
+                saveLimit.className = "subtle";
+                saveLimit.textContent = "Save";
+                saveLimit.addEventListener("click", async () => {
+                    const minutes = Number(limitInput.value);
                     if (!Number.isSafeInteger(minutes) || minutes < 0) {
-                        showMessage(dashboardMessage, "Enter 0 or a positive whole-number of minutes.");
+                        showMessage(dashboardMessage, "Enter 0 or a positive whole number of minutes.");
                         return;
                     }
-                    save.disabled = true;
+                    saveLimit.disabled = true;
                     try {
                         await setSiteTimeLimit(currentUser.email, domain, minutes * 60);
                         showMessage(dashboardMessage, `${domain} daily limit saved.`, true);
                     } catch (error) {
                         showMessage(dashboardMessage, readableError(error));
-                    } finally { save.disabled = false; }
+                    } finally { saveLimit.disabled = false; }
                 });
-                control.append(input, suffix, save);
-                limitCell.append(control);
-                row.append(siteCell, timeCell, limitCell);
+                limitControl.append(limitInput, limitSuffix, saveLimit);
+                limitCell.append(limitControl);
+
+                const rateCell = document.createElement("td");
+                const rateControl = document.createElement("div");
+                rateControl.className = "rate-control";
+                const rateInput = document.createElement("input");
+                rateInput.type = "number";
+                rateInput.min = "0";
+                rateInput.step = "0.25";
+                rateInput.value = String(normalizeSeedRate(rates[domain], 1));
+                rateInput.setAttribute("aria-label", `Seeds per extra minute for ${domain}`);
+                const rateSuffix = document.createElement("span");
+                rateSuffix.textContent = "seeds";
+                const saveRate = document.createElement("button");
+                saveRate.type = "button";
+                saveRate.className = "subtle";
+                saveRate.textContent = "Save";
+                saveRate.addEventListener("click", async () => {
+                    const rate = Number(rateInput.value);
+                    if (!Number.isFinite(rate) || rate < 0) {
+                        showMessage(dashboardMessage, "Enter 0 or a positive seed rate.");
+                        return;
+                    }
+                    saveRate.disabled = true;
+                    try {
+                        await setSiteSeedRate(currentUser.email, domain, rate);
+                        showMessage(dashboardMessage, `${domain} extra time now costs ${formatSeeds(normalizeSeedRate(rate))} seeds per minute.`, true);
+                    } catch (error) {
+                        showMessage(dashboardMessage, readableError(error));
+                    } finally { saveRate.disabled = false; }
+                });
+                rateControl.append(rateInput, rateSuffix, saveRate);
+                rateCell.append(rateControl);
+
+                row.append(siteCell, limitCell, rateCell);
                 body.append(row);
             }
 
-            renderSiteCollection("productiveSiteList", latestData.productivitySites || [], (site) => removeProductiveSite(currentUser.email, site), (site) => `${formatDuration(focusToday[site] || 0)} focused today`);
+            renderFocusSites(latestData.productivitySites || [], latestData.productivitySeedRates || {});
             renderTasks(latestData.todoTasks || []);
             renderCoinItems("rewardList", latestData.rewards || [], "reward");
             renderCoinItems("penaltyList", latestData.coinPenalties || [], "penalty");
-            renderSiteCollection("sleepSiteList", latestData.sleepModeSites || [], (site) => removeSleepModeSite(currentUser.email, site), () => "Blocks regardless of allowance");
+            renderSiteCollection("sleepSiteList", latestData.sleepModeSites || [], (site) => removeSleepModeSite(currentUser.email, site), () => "Always blocked");
             renderSiteCollection("sleepScheduleList", latestData.sleepSchedules || [], (schedule) => removeSleepSchedule(currentUser.email, schedule.id), (schedule) => `${schedule.startTime}–${schedule.endTime}`);
+
+            const today = localDateKey();
+            if (currentUser && latestData.lastDashboardLoginDate !== today && recapChecked !== today) {
+                recapChecked = today;
+                if (latestData.lastDashboardLoginDate) showDailyRecap(latestData);
+                recordDashboardLogin(currentUser.email).catch(() => {});
+            }
         }
 
-        document.querySelectorAll("[data-tab]").forEach((button) => button.addEventListener("click", () => {
-            const activeTab = button.dataset.tab;
-            document.querySelectorAll("[data-tab]").forEach((tab) => tab.setAttribute("aria-selected", String(tab === button)));
-            document.querySelectorAll("[data-tab-panel]").forEach((panel) => { panel.hidden = panel.dataset.tabPanel !== activeTab; });
-        }));
+        function selectTab(activeTab) {
+            document.querySelectorAll("[data-tab]").forEach((tab) => {
+                tab.setAttribute("aria-selected", String(tab.dataset.tab === activeTab));
+            });
+            document.querySelectorAll("[data-tab-panel]").forEach((panel) => {
+                panel.hidden = panel.dataset.tabPanel !== activeTab;
+            });
+        }
+
+        document.querySelectorAll("[data-tab]").forEach((button) => {
+            button.addEventListener("click", () => selectTab(button.dataset.tab));
+        });
+        document.getElementById("recapDismiss").addEventListener("click", () => {
+            document.getElementById("dailyRecap").hidden = true;
+        });
 
         authForm.addEventListener("submit", async (event) => {
             event.preventDefault();
@@ -689,6 +889,7 @@
             event.preventDefault();
             const domain = normalizeDomain(document.getElementById("siteInput").value.trim());
             const limitMinutes = Number(document.getElementById("siteLimitInput").value);
+            const seedRate = Number(document.getElementById("siteRateInput").value);
             if (!domain) {
                 showMessage(dashboardMessage, "Enter a valid website domain, such as example.com.");
                 return;
@@ -697,26 +898,34 @@
                 showMessage(dashboardMessage, "Enter 0 or a positive whole number of minutes.");
                 return;
             }
+            if (!Number.isFinite(seedRate) || seedRate < 0) {
+                showMessage(dashboardMessage, "Enter 0 or a positive seed rate.");
+                return;
+            }
             try {
-                await addBlockedSite(currentUser.email, domain, limitMinutes * 60);
+                await addBlockedSite(currentUser.email, domain, limitMinutes * 60, seedRate);
                 document.getElementById("siteInput").value = "";
                 showMessage(dashboardMessage, limitMinutes === 0
                     ? `${domain} is blocked permanently.`
-                    : `${domain} is blocked after ${limitMinutes} minutes each day.`, true);
+                    : `${domain} is blocked after ${limitMinutes} minutes. Extra time costs ${formatSeeds(normalizeSeedRate(seedRate))} seeds/min.`, true);
             } catch (error) {
                 showMessage(dashboardMessage, readableError(error));
             }
         });
 
-
         document.getElementById("productiveSiteForm").addEventListener("submit", async (event) => {
             event.preventDefault();
             const domain = normalizeDomain(document.getElementById("productiveSiteInput").value.trim());
+            const seedRate = Number(document.getElementById("productiveRateInput").value);
             if (!domain) { showMessage(dashboardMessage, "Enter a valid website domain."); return; }
+            if (!Number.isFinite(seedRate) || seedRate < 0) {
+                showMessage(dashboardMessage, "Enter 0 or a positive seed rate.");
+                return;
+            }
             try {
-                await addProductiveSite(currentUser.email, domain);
+                await addProductiveSite(currentUser.email, domain, seedRate);
                 document.getElementById("productiveSiteInput").value = "";
-                showMessage(dashboardMessage, `${domain} will earn 1 coin per focused minute.`, true);
+                showMessage(dashboardMessage, `${domain} will earn ${formatSeeds(normalizeSeedRate(seedRate))} seeds per focused minute.`, true);
             } catch (error) { showMessage(dashboardMessage, readableError(error)); }
         });
 
@@ -727,7 +936,7 @@
             const reward = Number(document.getElementById("todoRewardInput").value);
             const recurring = document.getElementById("todoRecurringInput").checked;
             if (!title || !Number.isSafeInteger(reward) || reward < 1) {
-                showMessage(dashboardMessage, "Enter a task and a positive whole-number coin reward."); return;
+                showMessage(dashboardMessage, "Enter a task and a positive whole-number seed reward."); return;
             }
             try {
                 await addTodoTask(currentUser.email, title, description, reward, recurring);
@@ -744,7 +953,7 @@
             const description = document.getElementById("rewardDescriptionInput").value.trim();
             const cost = Number(document.getElementById("rewardCostInput").value);
             if (!title || !Number.isSafeInteger(cost) || cost < 1) {
-                showMessage(dashboardMessage, "Enter a reward and a positive whole-number coin cost."); return;
+                showMessage(dashboardMessage, "Enter a reward and a positive whole-number seed cost."); return;
             }
             try {
                 await addCoinReward(currentUser.email, title, description, cost);
@@ -759,12 +968,12 @@
             const description = document.getElementById("penaltyDescriptionInput").value.trim();
             const amount = Number(document.getElementById("penaltyAmountInput").value);
             if (!title || !Number.isSafeInteger(amount) || amount < 1) {
-                showMessage(dashboardMessage, "Enter a penalty and a positive whole-number coin amount."); return;
+                showMessage(dashboardMessage, "Enter a penalty and a positive whole-number seed amount."); return;
             }
             try {
                 await addCoinPenalty(currentUser.email, title, description, amount);
                 document.getElementById("penaltyForm").reset();
-                showMessage(dashboardMessage, "Penalty added. You can apply it whenever you choose.", true);
+                showMessage(dashboardMessage, "Mistake added. Apply it whenever you choose.", true);
             } catch (error) { showMessage(dashboardMessage, readableError(error)); }
         });
 
@@ -798,8 +1007,12 @@
             if (stopWatching) stopWatching();
             authView.hidden = Boolean(user);
             dashboard.hidden = !user;
+            sidebar.hidden = !user;
+            appShell.classList.toggle("signed-in", Boolean(user));
+            recapChecked = false;
             if (!user) {
                 latestData = null;
+                document.getElementById("dailyRecap").hidden = true;
                 showMessage(authMessage, "");
                 return;
             }
@@ -812,7 +1025,6 @@
             }
         });
 
-        // Refresh task completion labels after local midnight for open dashboards.
         setInterval(() => {
             if (currentUser && latestData) render(latestData);
         }, 60_000);
