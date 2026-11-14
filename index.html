@@ -198,6 +198,15 @@
         .overlay-grid .wide { grid-column: 1 / -1; }
         .overlay-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; }
         .rating-note { margin: 10px 0; padding: 10px; border: 1px solid #5a4a2c; border-radius: 9px; color: #f0d48a; background: #2a2216; }
+        .quality-label { margin-left: 6px; color: var(--gold); font-weight: 750; }
+        input[type="range"] { padding: 0; height: 28px; border: 0; background: transparent; accent-color: var(--gold); }
+        .slider-scale { display: flex; justify-content: space-between; color: var(--muted); font-size: 10px; }
+        .minute-presets { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+        .goal-impact { min-height: 16px; margin-bottom: 4px; color: var(--muted); font-size: 12px; }
+        .home-rings { gap: 18px; }
+        .home-rings .goal-ring-wrap { min-width: 120px; font-size: 12px; }
+        .home-rings .goal-ring { width: 112px; height: 112px; }
+        .home-rings .goal-ring::before { width: 88px; height: 88px; font-size: 14px; }
         @media (max-width: 820px) {
             .app.signed-in { grid-template-columns: 1fr; }
             .sidebar {
@@ -227,7 +236,8 @@
         <aside class="sidebar" id="sidebar" hidden>
             <div class="brand"><span class="mark" aria-hidden="true">s</span> sesame</div>
             <div class="seed-balance"><span>Seeds</span><strong id="sidebarSeeds">0</strong></div>
-            <button class="nav-btn" type="button" data-tab="todo" aria-selected="true">Tasks</button>
+            <button class="nav-btn" type="button" data-tab="home" aria-selected="true">Home</button>
+            <button class="nav-btn" type="button" data-tab="todo" aria-selected="false">Tasks</button>
             <button class="nav-btn" type="button" data-tab="goals" aria-selected="false">Goals</button>
             <button class="nav-btn" type="button" data-tab="limits" aria-selected="false">Limits</button>
             <button class="nav-btn" type="button" data-tab="productivity" aria-selected="false">Focus sites</button>
@@ -258,7 +268,35 @@
             <section id="dashboard" hidden>
                 <div id="dashboardMessage" class="message" role="status" aria-live="polite"></div>
 
-                <section id="todoPanel" class="tab-panel" data-tab-panel="todo">
+                <!-- HOME: progress toward goals (rings fill as minutes are logged on tasks). -->
+                <section id="homePanel" class="tab-panel" data-tab-panel="home">
+                    <div class="page-head">
+                        <div>
+                            <div class="eyebrow">Today</div>
+                            <h1>Home</h1>
+                            <p id="homeSummary">Your progress toward today's goals.</p>
+                        </div>
+                    </div>
+                    <div class="stats">
+                        <div class="card stat"><div class="stat-label">Seeds</div><div class="stat-value" id="homeSeeds">0</div></div>
+                        <div class="card stat"><div class="stat-label">Minutes today</div><div class="stat-value" id="homeMinutes">0</div></div>
+                        <div class="card stat"><div class="stat-label">Seeds earned today</div><div class="stat-value" id="homeGained">0</div></div>
+                    </div>
+                    <div class="card panel">
+                        <div class="panel-head"><h2>Daily goals</h2><p>Log time on tasks to fill each ring.</p></div>
+                        <div id="homeDailyRings" class="goal-rings home-rings"></div>
+                    </div>
+                    <div class="card panel" id="homeWeeklyCard" style="margin-top:12px" hidden>
+                        <div class="panel-head"><h2>Weekly goals</h2></div>
+                        <div id="homeWeeklyRings" class="goal-rings home-rings"></div>
+                    </div>
+                    <div class="card panel" style="margin-top:12px">
+                        <div class="panel-head"><h2>Log a task</h2><p>Pick a task from your bank.</p></div>
+                        <div id="homeTasks" class="item-list"></div>
+                    </div>
+                </section>
+
+                <section id="todoPanel" class="tab-panel" data-tab-panel="todo" hidden>
                     <div class="page-head">
                         <div>
                             <div class="eyebrow">Today</div>
@@ -275,16 +313,16 @@
                         <div class="todo-hero">
                             <div>
                                 <h3>Task bank</h3>
-                                <p>Complete bank tasks any time. Daily tasks reset each morning.</p>
+                                <p>Complete any task any time. Seeds = base seeds per minute × minutes × quality.</p>
                             </div>
                             <div class="hero-metrics">
-                                <div class="hero-stat"><strong id="todoOpenCount">0</strong><span>up next</span></div>
-                                <div class="hero-stat"><strong id="todoCompleteCount">0</strong><span>done today</span></div>
+                                <div class="hero-stat"><strong id="todoOpenCount">0</strong><span>in the bank</span></div>
+                                <div class="hero-stat"><strong id="todoCompleteCount">0</strong><span>min today</span></div>
                             </div>
                         </div>
                         <button class="primary" id="openTaskForm" type="button">＋ Add a task</button>
                         <div class="board-heading">
-                            <h3>Open work</h3>
+                            <h3>Your tasks</h3>
                             <div class="board-progress">
                                 <span id="todoProgressLabel">0% complete</span>
                                 <div class="progress-track"><div id="todoProgressFill" class="progress-fill"></div></div>
@@ -304,15 +342,14 @@
                 </section>
 
                 <section id="goalsPanel" class="card panel tab-panel" data-tab-panel="goals" hidden>
-                    <div class="page-head"><div><div class="eyebrow">Grow steadily</div><h1>Your goals</h1><p>Volume is completed minutes × task intensity.</p></div></div>
+                    <div class="page-head"><div><div class="eyebrow">Grow steadily</div><h1>Your goals</h1><p>Goals fill with the minutes you log on tasks.</p></div></div>
                     <form id="goalForm" class="task-form">
                         <input id="goalTitleInput" type="text" maxlength="80" placeholder="Goal name" aria-label="Goal name" required>
-                        <input id="goalCountInput" type="number" min="1" value="3" aria-label="Number of tasks" required>
-                        <select id="goalPeriodInput" aria-label="Goal period"><option value="daily">Each day</option><option value="weekly">Each week</option></select>
-                        <input id="goalVolumeInput" type="number" min="0" step="1" value="50" placeholder="Minimum volume" aria-label="Minimum task volume" required>
+                        <input id="goalMinutesInput" type="number" min="1" max="10080" step="1" value="60" aria-label="Goal minutes" title="Minutes to log" required>
+                        <select id="goalPeriodInput" aria-label="Goal period"><option value="daily">Minutes each day</option><option value="weekly">Minutes each week</option></select>
                         <select id="goalCategoryInput" aria-label="Category (optional)"><option value="">Any category</option></select>
                         <input id="goalColorInput" type="color" value="#d4a54a" aria-label="Goal color">
-                        <button class="primary form-wide" type="submit">Add goal</button>
+                        <button class="primary" type="submit">Add goal</button>
                     </form>
                     <div id="goalList" class="goal-grid"></div>
                 </section>
@@ -439,10 +476,9 @@
                 <div class="field wide"><label for="taskTitleInput">Task name</label><input id="taskTitleInput" maxlength="120" required></div>
                 <div class="field wide"><label for="taskDescriptionInput">Details</label><textarea id="taskDescriptionInput" maxlength="500" placeholder="What does this task involve?"></textarea></div>
                 <div class="field"><label for="taskCategoryInput">Category</label><select id="taskCategoryInput"><option value="">No category</option></select></div>
-                <div class="field"><label for="taskModeInput">Repeat</label><select id="taskModeInput"><option value="bank">Task bank · repeat anytime</option><option value="daily">Daily · once each day</option><option value="once">One-time · remove when done</option></select></div>
-                <div class="field"><label for="taskMinutesInput">Planned minutes</label><input id="taskMinutesInput" type="number" min="0" max="1440" value="20" required></div>
+                <div class="field"><label for="taskMinutesInput">Usual minutes</label><input id="taskMinutesInput" type="number" min="0" max="1440" value="20" required></div>
                 <div class="field"><label for="taskIntensityInput">Intensity (1–10)</label><input id="taskIntensityInput" type="number" min="1" max="10" value="5" required></div>
-                <div class="field"><label for="taskRewardInput">Base seeds</label><input id="taskRewardInput" type="number" min="0" step="0.25" value="2" required></div>
+                <div class="field"><label for="taskRewardInput">Base seeds per minute</label><input id="taskRewardInput" type="number" min="0" step="any" value="0.1" required></div>
                 <div class="field"><label for="taskColorInput">Task color</label><input id="taskColorInput" type="color" value="#d4a54a"></div>
             </div>
             <div id="taskFormMessage" class="message" role="status"></div>
@@ -454,9 +490,21 @@
         <form id="taskCompleteForm" class="card overlay-card" style="max-width:460px">
             <div class="overlay-head"><div><div class="eyebrow">Task reflection</div><h1 id="completeTaskTitle">Complete task</h1></div></div>
             <p>How did it go, and how long did you work on it?</p>
-            <div class="field"><label for="completionRatingInput">Completion rating</label><select id="completionRatingInput"><option value="1">1 · A little</option><option value="2">2 · Some progress</option><option value="3" selected>3 · Completed</option><option value="4">4 · Strong effort</option><option value="5">5 · Excellent</option></select></div>
-            <div class="field"><label for="completionMinutesInput">Time spent (minutes)</label><input id="completionMinutesInput" type="number" min="0" max="1440" step="1" required></div>
+            <div class="field"><label for="completionMinutesInput">Time spent (minutes)</label><input id="completionMinutesInput" type="number" min="0" max="1440" step="1" required>
+                <div class="minute-presets">
+                    <button class="subtle" type="button" data-add-minutes="5">+5</button>
+                    <button class="subtle" type="button" data-add-minutes="10">+10</button>
+                    <button class="subtle" type="button" data-add-minutes="15">+15</button>
+                    <button class="subtle" type="button" data-add-minutes="30">+30</button>
+                    <button class="subtle" type="button" id="clearMinutes">Clear</button>
+                </div>
+            </div>
+            <div class="field"><label for="completionQualityInput">How good was it?<span id="completionQualityLabel" class="quality-label">50% · As expected</span></label>
+                <input id="completionQualityInput" type="range" min="0" max="100" step="5" value="50">
+                <div class="slider-scale"><span>Barely</span><span>As expected</span><span>Outstanding</span></div>
+            </div>
             <div id="completionReward" class="rating-note"></div>
+            <div id="completionGoals" class="goal-impact"></div>
             <div class="overlay-actions"><button class="subtle" id="cancelCompletion" type="button">Cancel</button><button class="primary" type="submit">Finish task</button></div>
         </form>
     </div>
@@ -468,7 +516,7 @@
             addProductiveSite, removeProductiveSite, setSiteSeedRate, setProductivitySeedRate,
             addTodoTask, updateTodoTask, completeTodoTask, removeTodoTask,
             addTaskCategory, updateTaskCategory, removeTaskCategory,
-            addGoal, removeGoal, taskMode, taskVolume, addSleepModeSite,
+            addGoal, removeGoal, taskSeedRate, qualityMultiplier, addSleepModeSite,
             removeSleepModeSite, addSleepSchedule, removeSleepSchedule,
             addCoinReward, removeCoinReward, redeemCoinReward,
             addCoinPenalty, removeCoinPenalty, redeemCoinPenalty,
@@ -536,25 +584,28 @@
             return localDateKey(start);
         }
 
+        // Goals are time-only: the target is minutes, and progress is the sum of
+        // minutes logged on matching tasks.
+        const goalTarget = (goal) => Math.max(1, Number(goal.minutes) || 60);
         function goalCount(goal, stats, start, end = localDateKey()) {
             const done = Object.entries(stats || {})
                 .filter(([date]) => date >= start && date <= end)
                 .flatMap(([, day]) => day.completedTasks || []);
-            return done.filter((task) => (!goal.categoryId || task.categoryId === goal.categoryId)
-                && Number(task.volume || 0) >= Number(goal.minVolume || 0)).length;
+            return done.filter((task) => !goal.categoryId || task.categoryId === goal.categoryId)
+                .reduce((sum, task) => sum + (Number(task.minutesSpent) || 0), 0);
         }
 
         function goalRing(goal, count, label = "") {
             const category = (latestData?.taskCategories || []).find((item) => item.id === goal.categoryId);
             const color = goal.color || category?.color || "#d4a54a";
-            const percent = Math.min(100, Math.round(count / Math.max(1, Number(goal.count) || 1) * 100));
+            const percent = Math.min(100, Math.round(count / goalTarget(goal) * 100));
             const wrap = document.createElement("div");
             wrap.className = "goal-ring-wrap";
             const ring = document.createElement("div");
             ring.className = "goal-ring";
             ring.style.setProperty("--goal-color", color);
             ring.style.setProperty("--goal-progress", `${percent}%`);
-            ring.dataset.label = `${count}/${goal.count}`;
+            ring.dataset.label = `${count}/${goalTarget(goal)}m`;
             wrap.append(ring);
             const name = document.createElement("span");
             name.textContent = `${goal.title}${label ? ` · ${label}` : ""}`;
@@ -578,7 +629,7 @@
             if (!goals.length) {
                 const empty = document.createElement("div");
                 empty.className = "empty-card";
-                empty.textContent = "Add a goal to track tasks by volume and category.";
+                empty.textContent = "Add a goal to track minutes by category.";
                 list.append(empty);
                 return;
             }
@@ -594,7 +645,7 @@
                 title.textContent = goal.title;
                 const category = (latestData.taskCategories || []).find((item) => item.id === goal.categoryId);
                 const description = document.createElement("p");
-                description.textContent = `${count} of ${goal.count} tasks · volume ≥ ${goal.minVolume}${category ? ` · ${category.name}` : " · any category"}`;
+                description.textContent = `${count} of ${goalTarget(goal)} min${category ? ` · ${category.name}` : " · any category"}`;
                 copy.append(title, description);
                 const remove = document.createElement("button");
                 remove.type = "button";
@@ -635,7 +686,7 @@
             } else {
                 for (const task of tasks) {
                     const item = document.createElement("li");
-                    item.textContent = `${task.title} · ${task.minutesSpent || 0} min · rating ${task.rating || 3}/5 · +${formatSeeds(task.reward)} seeds`;
+                    item.textContent = `${task.title} · ${task.minutesSpent || 0} min${task.quality === undefined ? "" : ` · ${task.quality}% quality`} · +${formatSeeds(task.reward)} seeds`;
                     list.append(item);
                 }
             }
@@ -779,31 +830,107 @@
             document.getElementById("taskTitleInput").value = task?.title || "";
             document.getElementById("taskDescriptionInput").value = task?.description || "";
             document.getElementById("taskCategoryInput").value = task?.categoryId || "";
-            document.getElementById("taskModeInput").value = taskMode(task || {});
             document.getElementById("taskMinutesInput").value = task?.minutes ?? 20;
             document.getElementById("taskIntensityInput").value = task?.intensity ?? 5;
-            document.getElementById("taskRewardInput").value = task?.reward ?? 2;
+            document.getElementById("taskRewardInput").value = task ? taskSeedRate(task) : 0.1;
             document.getElementById("taskColorInput").value = task?.color || "#d4a54a";
             document.getElementById("taskFormMessage").textContent = "";
             document.getElementById("taskEditor").hidden = false;
             document.getElementById("taskTitleInput").focus();
         }
 
+        const QUALITY_BANDS = [[20, "Barely"], [40, "Rough"], [60, "As expected"], [80, "Went well"], [101, "Outstanding"]];
+        const qualityBand = (quality) => QUALITY_BANDS.find(([limit]) => quality < limit)[1];
+
         function openCompletion(task) {
             completingTask = task;
             document.getElementById("completeTaskTitle").textContent = task.title;
-            document.getElementById("completionRatingInput").value = "3";
+            document.getElementById("completionQualityInput").value = "50";
             document.getElementById("completionMinutesInput").value = task.minutes || 0;
             updateCompletionReward();
             document.getElementById("taskCompleteScreen").hidden = false;
         }
 
+        // Live preview: base seeds/min x minutes x quality multiplier, plus which
+        // goals the minutes will count toward.
         function updateCompletionReward() {
             if (!completingTask) return;
-            const rating = Number(document.getElementById("completionRatingInput").value);
-            const multiplier = [0, 0.5, 0.75, 1, 1.25, 1.5][rating];
-            const earned = Math.round((Number(completingTask.reward) || 0) * multiplier * 100) / 100;
-            document.getElementById("completionReward").textContent = `You’ll earn ${formatSeeds(earned)} seeds (${multiplier * 100}% of the ${formatSeeds(completingTask.reward)} seed base).`;
+            const quality = Number(document.getElementById("completionQualityInput").value);
+            const minutes = Math.max(0, Number(document.getElementById("completionMinutesInput").value) || 0);
+            const rate = taskSeedRate(completingTask);
+            const multiplier = qualityMultiplier(quality);
+            const earned = Math.round(rate * minutes * multiplier * 100) / 100;
+            document.getElementById("completionQualityLabel").textContent = `${quality}% · ${qualityBand(quality)}`;
+            document.getElementById("completionReward").textContent = `${formatSeeds(rate)} seeds/min × ${formatSeeds(minutes)} min × ${multiplier.toFixed(2)} quality = ${formatSeeds(earned)} seeds`;
+            const goals = (latestData?.goals || []).filter((goal) => !goal.categoryId || goal.categoryId === completingTask.categoryId);
+            document.getElementById("completionGoals").textContent = minutes > 0 && goals.length
+                ? `Counts toward: ${goals.map((goal) => goal.title).join(", ")}`
+                : "";
+        }
+
+        function dailyGoalPercent(data) {
+            const goals = (data.goals || []).filter((goal) => goal.period !== "weekly");
+            if (!goals.length) return 0;
+            const today = localDateKey();
+            const total = goals.reduce((sum, goal) => sum + Math.min(1, goalCount(goal, data.dailySeedStats, today, today) / goalTarget(goal)), 0);
+            return Math.round(total / goals.length * 100);
+        }
+
+        function renderHome(data) {
+            const today = localDateKey();
+            const day = data.dailySeedStats?.[today] || {};
+            const minutes = (day.completedTasks || []).reduce((sum, task) => sum + (Number(task.minutesSpent) || 0), 0);
+            document.getElementById("homeSeeds").textContent = formatSeeds(data.coins);
+            document.getElementById("homeMinutes").textContent = minutes;
+            document.getElementById("homeGained").textContent = formatSeeds(day.gained || 0);
+            const goals = data.goals || [];
+            const daily = goals.filter((goal) => goal.period !== "weekly");
+            const weekly = goals.filter((goal) => goal.period === "weekly");
+            document.getElementById("homeSummary").textContent = daily.length
+                ? `${dailyGoalPercent(data)}% of today's goals complete`
+                : "Add a goal to start tracking your time.";
+            const fillRings = (id, list, label) => {
+                const box = document.getElementById(id);
+                box.replaceChildren();
+                for (const goal of list) box.append(goalRing(goal, goalCount(goal, data.dailySeedStats, goalStart(goal.period)), label));
+            };
+            fillRings("homeDailyRings", daily, "today");
+            if (!daily.length) document.getElementById("homeDailyRings").textContent = "No daily goals yet. Add one on the Goals page.";
+            document.getElementById("homeWeeklyCard").hidden = !weekly.length;
+            fillRings("homeWeeklyRings", weekly, "this week");
+
+            const list = document.getElementById("homeTasks");
+            list.replaceChildren();
+            const tasks = data.todoTasks || [];
+            if (!tasks.length) {
+                const empty = document.createElement("div");
+                empty.className = "empty-card";
+                empty.textContent = "Add a task on the Tasks page to start logging time.";
+                list.append(empty);
+                return;
+            }
+            for (const task of tasks) {
+                const category = (data.taskCategories || []).find((item) => item.id === task.categoryId);
+                const row = document.createElement("div");
+                row.className = "list-item";
+                row.style.borderLeft = `4px solid ${task.color || category?.color || "#d4a54a"}`;
+                const copy = document.createElement("span");
+                copy.className = "task-copy";
+                const title = document.createElement("span");
+                title.className = "item-title";
+                title.textContent = task.title;
+                const meta = document.createElement("span");
+                meta.className = "item-meta";
+                meta.textContent = `${category ? category.name : "No category"} · ${formatSeeds(taskSeedRate(task))} seeds/min`;
+                copy.append(title, meta);
+                const log = document.createElement("button");
+                log.type = "button";
+                log.className = "subtle";
+                log.textContent = "Log";
+                log.addEventListener("click", () => openCompletion(task));
+                row.append(copy, log);
+                list.append(row);
+            }
         }
 
         function renderTasks(tasks) {
@@ -811,13 +938,13 @@
             list.replaceChildren();
             const today = localDateKey();
             const completedLogs = latestData.dailySeedStats?.[today]?.completedTasks || [];
-            const isCompleteToday = (task) => taskMode(task) === "daily" && task.completedDate === today;
-            const completeCount = completedLogs.length;
-            const openCount = tasks.filter((task) => !isCompleteToday(task)).length;
-            const progress = tasks.length ? Math.min(100, Math.round(new Set(completedLogs.map((task) => task.taskId)).size / tasks.length * 100)) : 0;
-            document.getElementById("todoOpenCount").textContent = openCount;
-            document.getElementById("todoCompleteCount").textContent = completeCount;
-            document.getElementById("todoProgressLabel").textContent = `${progress}% complete`;
+            // Every task is a task-bank task, so none is ever locked as done.
+            const isCompleteToday = () => false;
+            const minutesToday = completedLogs.reduce((sum, task) => sum + (Number(task.minutesSpent) || 0), 0);
+            const progress = dailyGoalPercent(latestData);
+            document.getElementById("todoOpenCount").textContent = tasks.length;
+            document.getElementById("todoCompleteCount").textContent = minutesToday;
+            document.getElementById("todoProgressLabel").textContent = `${progress}% of daily goals`;
             document.getElementById("todoProgressFill").style.width = `${progress}%`;
             if (!tasks.length) {
                 const empty = document.createElement("div");
@@ -848,7 +975,7 @@
                 tags.className = "task-tags";
                 const kind = document.createElement("span");
                 kind.className = "task-status";
-                kind.textContent = taskMode(task) === "bank" ? "Bank" : taskMode(task) === "daily" ? "Daily" : "One-time";
+                kind.textContent = "Bank";
                 tags.append(kind);
                 if (category) {
                     const categoryTag = document.createElement("span");
@@ -859,7 +986,7 @@
                 }
                 const volume = document.createElement("span");
                 volume.className = "item-meta";
-                volume.textContent = `${task.minutes || 0} min · intensity ${task.intensity || 1} · volume ${taskVolume(task)}`;
+                volume.textContent = `${task.minutes || 0} min usually · intensity ${task.intensity || 1}`;
                 tags.append(volume);
                 copy.append(tags);
                 const check = document.createElement("span");
@@ -873,7 +1000,7 @@
                 actions.className = "item-actions";
                 const reward = document.createElement("span");
                 reward.className = "reward-pill";
-                reward.textContent = `${formatSeeds(task.reward)} seeds`;
+                reward.textContent = `${formatSeeds(taskSeedRate(task))} seeds/min`;
                 const state = document.createElement("span");
                 state.className = "task-status";
                 const doneCount = completedLogs.filter((item) => item.taskId === task.id).length;
@@ -1066,6 +1193,7 @@
             renderTasks(latestData.todoTasks || []);
             renderCategories(latestData.taskCategories || []);
             renderGoals(latestData.goals || []);
+            renderHome(latestData);
             renderCoinItems("rewardList", latestData.rewards || [], "reward");
             renderCoinItems("penaltyList", latestData.coinPenalties || [], "penalty");
             renderSiteCollection("sleepSiteList", latestData.sleepModeSites || [], (site) => removeSleepModeSite(currentUser.email, site), () => "Always blocked");
@@ -1110,8 +1238,19 @@
             document.getElementById("taskCompleteScreen").hidden = true;
             completingTask = null;
         });
-        document.getElementById("completionRatingInput").addEventListener("change", updateCompletionReward);
+        document.getElementById("completionQualityInput").addEventListener("input", updateCompletionReward);
         document.getElementById("completionMinutesInput").addEventListener("input", updateCompletionReward);
+        document.querySelectorAll("[data-add-minutes]").forEach((button) => {
+            button.addEventListener("click", () => {
+                const input = document.getElementById("completionMinutesInput");
+                input.value = Math.min(1440, (Number(input.value) || 0) + Number(button.dataset.addMinutes));
+                updateCompletionReward();
+            });
+        });
+        document.getElementById("clearMinutes").addEventListener("click", () => {
+            document.getElementById("completionMinutesInput").value = 0;
+            updateCompletionReward();
+        });
 
         // Task creation and editing happen on their own overlay screen.
         document.getElementById("taskForm").addEventListener("submit", async (event) => {
@@ -1129,8 +1268,7 @@
                 title: document.getElementById("taskTitleInput").value,
                 description: document.getElementById("taskDescriptionInput").value,
                 categoryId: document.getElementById("taskCategoryInput").value,
-                mode: document.getElementById("taskModeInput").value,
-                minutes, intensity, reward,
+                minutes, intensity, seedsPerMinute: reward,
                 color: document.getElementById("taskColorInput").value
             };
             try {
@@ -1147,14 +1285,16 @@
         document.getElementById("taskCompleteForm").addEventListener("submit", async (event) => {
             event.preventDefault();
             if (!completingTask) return;
-            const rating = Number(document.getElementById("completionRatingInput").value);
+            const quality = Number(document.getElementById("completionQualityInput").value);
             const minutesSpent = Number(document.getElementById("completionMinutesInput").value);
-            if (!Number.isInteger(minutesSpent) || minutesSpent < 0 || minutesSpent > 1440) return;
-            const multiplier = [0, 0.5, 0.75, 1, 1.25, 1.5][rating];
-            const earned = Math.round((Number(completingTask.reward) || 0) * multiplier * 100) / 100;
+            if (!Number.isInteger(minutesSpent) || minutesSpent < 0 || minutesSpent > 1440) {
+                document.getElementById("completionReward").textContent = "Enter a whole number of minutes from 0 to 1440.";
+                return;
+            }
+            const earned = Math.round(taskSeedRate(completingTask) * minutesSpent * qualityMultiplier(quality) * 100) / 100;
             try {
-                await completeTodoTask(currentUser.email, completingTask.id, { rating, minutesSpent });
-                showMessage(dashboardMessage, `Task logged: ${minutesSpent} min, rating ${rating}/5, +${formatSeeds(earned)} seeds.`, true);
+                await completeTodoTask(currentUser.email, completingTask.id, { quality, minutesSpent });
+                showMessage(dashboardMessage, `Task logged: ${minutesSpent} min at ${quality}% quality, +${formatSeeds(earned)} seeds.`, true);
                 document.getElementById("taskCompleteScreen").hidden = true;
                 completingTask = null;
             } catch (error) { showMessage(dashboardMessage, readableError(error)); }
@@ -1178,16 +1318,15 @@
 
         document.getElementById("goalForm").addEventListener("submit", async (event) => {
             event.preventDefault();
-            const count = Number(document.getElementById("goalCountInput").value);
-            const minVolume = Number(document.getElementById("goalVolumeInput").value);
-            if (!Number.isInteger(count) || count < 1 || !Number.isFinite(minVolume) || minVolume < 0) {
-                showMessage(dashboardMessage, "Enter a whole task count and a nonnegative minimum volume.");
+            const minutes = Number(document.getElementById("goalMinutesInput").value);
+            if (!Number.isInteger(minutes) || minutes < 1 || minutes > 10080) {
+                showMessage(dashboardMessage, "Enter a whole number of minutes for the goal.");
                 return;
             }
             try {
                 await addGoal(currentUser.email, {
                     title: document.getElementById("goalTitleInput").value,
-                    count, minVolume,
+                    minutes,
                     categoryId: document.getElementById("goalCategoryInput").value,
                     period: document.getElementById("goalPeriodInput").value,
                     color: document.getElementById("goalColorInput").value

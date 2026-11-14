@@ -51,6 +51,22 @@ export const DEFAULT_CATEGORIES = [
     { id: "social", name: "Social", color: "#b58fd9" }
 ];
 
+// Starter goals: an hour a day in each starter category. Goals are time-only.
+export const DEFAULT_GOALS = DEFAULT_CATEGORIES.map((category) => ({
+    id: `goal-${category.id}`,
+    title: `${category.name} hour`,
+    categoryId: category.id,
+    minutes: 60,
+    period: "daily",
+    color: category.color
+}));
+
+// Only seed goals for categories the user still has.
+function defaultGoalsFor(categories) {
+    const ids = new Set((categories || []).map((category) => category.id));
+    return DEFAULT_GOALS.filter((goal) => ids.has(goal.categoryId));
+}
+
 const defaults = {
     blockedSites: [],
     siteTimeLimits: {},
@@ -59,7 +75,8 @@ const defaults = {
     productivitySeedRates: {},
     todoTasks: [],
     taskCategories: DEFAULT_CATEGORIES,
-    goals: [],
+    goals: DEFAULT_GOALS,
+    defaultGoalsSeeded: true,
     rewards: [],
     coinPenalties: [],
     sleepModeSites: [],
@@ -88,12 +105,28 @@ export function normalizeSeedRate(value, fallback = 1) {
     return Math.round(rate * 100) / 100;
 }
 
-// Task modes: "bank" can be completed any number of times, "daily" once per
-// day, "once" is removed after one completion. Older tasks only have the
-// `recurring` flag, so fall back to it.
-export function taskMode(task) {
-    if (task?.mode === "bank" || task?.mode === "daily" || task?.mode === "once") return task.mode;
-    return task?.recurring ? "daily" : "once";
+// Every task is a task-bank task: it stays in the list and can be completed
+// any number of times. (Older daily and one-time tasks are treated the same.)
+export function taskMode() {
+    return "bank";
+}
+
+// Seeds earned per minute of work. Older tasks stored a flat reward, so spread
+// that over the task's usual minutes.
+export function taskSeedRate(task) {
+    const rate = Number(task?.seedsPerMinute);
+    if (task?.seedsPerMinute !== undefined && Number.isFinite(rate) && rate >= 0) return rate;
+    const minutes = Number(task?.minutes) || 0;
+    const flat = Number(task?.reward) || 0;
+    return minutes > 0 ? Math.round(flat / minutes * 1000) / 1000 : 0.1;
+}
+
+// How good the activity was, 0-100%. 50% is "as expected" (x1.0); the
+// multiplier runs from x0.5 to x1.5.
+export function qualityMultiplier(quality) {
+    const value = Number(quality);
+    const percent = Number.isFinite(value) ? Math.max(0, Math.min(100, value)) : 50;
+    return 0.5 + percent / 100;
 }
 
 // Volume = minutes x intensity. Goals are measured in volume per task.
@@ -115,9 +148,9 @@ function cleanTaskFields(fields = {}) {
     if (fields.categoryId !== undefined) clean.categoryId = String(fields.categoryId || "");
     if (fields.minutes !== undefined) clean.minutes = Math.max(0, Math.min(1440, Math.round(Number(fields.minutes) || 0)));
     if (fields.intensity !== undefined) clean.intensity = Math.max(1, Math.min(10, Math.round(Number(fields.intensity) || 1)));
-    if (fields.reward !== undefined) clean.reward = Math.max(0, Math.round((Number(fields.reward) || 0) * 100) / 100);
+    if (fields.seedsPerMinute !== undefined) clean.seedsPerMinute = Math.max(0, Math.min(1000, Math.round((Number(fields.seedsPerMinute) || 0) * 1000) / 1000));
     if (fields.color !== undefined) clean.color = cleanColor(fields.color);
-    if (fields.mode !== undefined) clean.mode = ["bank", "daily", "once"].includes(fields.mode) ? fields.mode : "bank";
+    clean.mode = "bank";
     return clean;
 }
 
@@ -149,9 +182,8 @@ function bumpDailyStats(data, { gained = 0, lost = 0, task = null } = {}) {
             categoryId: task.categoryId || "",
             minutes: Number(task.minutes) || 0,
             intensity: Number(task.intensity) || 0,
-            volume: task.volume === undefined ? taskVolume(task) : Number(task.volume) || 0,
             minutesSpent: Number(task.minutesSpent) || 0,
-            rating: Number(task.rating) || 3,
+            quality: task.quality === undefined ? 50 : Number(task.quality) || 0,
             at: new Date().toISOString()
         });
     }
@@ -186,11 +218,16 @@ export async function ensureUserData(email, legacyAuthUid) {
         const missing = Object.fromEntries(
             Object.entries(defaults).filter(([key]) => data[key] === undefined)
         );
+        // One-time: give existing accounts the starter hour-a-day goals if they
+        // have no goals yet.
+        const seedGoals = data.defaultGoalsSeeded === undefined
+            && Array.isArray(data.goals) && data.goals.length === 0;
         const identity = {};
         if (data.email !== normalizedEmail) identity.email = normalizedEmail;
         if (data.uid !== normalizedEmail) identity.uid = normalizedEmail;
         await setDoc(ref, {
             ...missing,
+            ...(seedGoals ? { goals: defaultGoalsFor(data.taskCategories || DEFAULT_CATEGORIES) } : {}),
             ...identity,
             timeOnWebsite: deleteField(),
             siteTimeByDay: deleteField(),
@@ -331,7 +368,7 @@ export async function removeProductiveSite(email, domain) {
 export async function addTodoTask(email, fields) {
     const clean = cleanTaskFields({
         description: "", categoryId: "", minutes: 10, intensity: 5,
-        reward: 1, color: "", mode: "bank", ...fields
+        seedsPerMinute: 0.1, color: "", mode: "bank", ...fields
     });
     const task = {
         id: crypto.randomUUID(),
@@ -352,36 +389,20 @@ export async function updateTodoTask(email, taskId, fields) {
     }));
 }
 
-export async function completeTodoTask(email, taskId, { rating = 3, minutesSpent = 0 } = {}) {
+// Seeds = base seeds/min x minutes spent x quality multiplier (0.5x-1.5x).
+export async function completeTodoTask(email, taskId, { quality = 50, minutesSpent = 0 } = {}) {
     return changeUserData(email, (data) => {
         const tasks = data.todoTasks || [];
         const task = tasks.find((item) => item.id === taskId);
         if (!task) return {};
-        const today = localDateKey();
-        const mode = taskMode(task);
-        if (mode === "daily" && task.completedDate === today) return {};
-        if (mode === "once" && task.completed) return {};
-        const score = Math.max(1, Math.min(5, Math.floor(Number(rating) || 3)));
         const spent = Math.max(0, Math.min(1440, Math.floor(Number(minutesSpent) || 0)));
-        const reward = Math.round((Number(task.reward) || 0) * [0, 0.5, 0.75, 1, 1.25, 1.5][score] * 100) / 100;
+        const score = Math.max(0, Math.min(100, Math.round(Number.isFinite(Number(quality)) ? Number(quality) : 50)));
+        const reward = Math.round(taskSeedRate(task) * spent * qualityMultiplier(score) * 100) / 100;
         const coins = (Number(data.coins) || 0) + reward;
-        const completed = {
-            ...task, reward, rating: score, minutesSpent: spent,
-            volume: Math.round(spent * (Number(task.intensity) || 0) * 100) / 100
-        };
+        const completed = { ...task, reward, quality: score, minutesSpent: spent };
         const dailySeedStats = bumpDailyStats(data, { gained: reward, task: completed });
-        if (mode === "once") {
-            return { todoTasks: tasks.filter((item) => item.id !== taskId), coins, dailySeedStats };
-        }
-        // Bank tasks stay in the list so they can be done again at any time.
-        if (mode === "bank") return { coins, dailySeedStats };
-        return {
-            todoTasks: tasks.map((item) => item.id === taskId
-                ? { ...item, completedDate: today, completedAt: new Date().toISOString() }
-                : item),
-            coins,
-            dailySeedStats
-        };
+        // Every task is a task-bank task, so it stays in the list for next time.
+        return { coins, dailySeedStats };
     });
 }
 
@@ -519,14 +540,13 @@ export async function removeTaskCategory(email, categoryId) {
     });
 }
 
-// Goals: finish `count` tasks worth at least `minVolume` (minutes x intensity),
-// optionally within one category, per day or per week.
+// Goals are time-only: log `minutes` on tasks (optionally within one
+// category) per day or per week.
 function cleanGoal(fields = {}) {
     return {
         title: String(fields.title || "").trim().slice(0, 80),
         categoryId: String(fields.categoryId || ""),
-        minVolume: Math.max(0, Math.round((Number(fields.minVolume) || 0) * 100) / 100),
-        count: Math.max(1, Math.min(999, Math.floor(Number(fields.count) || 1))),
+        minutes: Math.max(1, Math.min(10080, Math.floor(Number(fields.minutes) || 60))),
         period: fields.period === "weekly" ? "weekly" : "daily",
         color: cleanColor(fields.color, "#d4a54a")
     };
