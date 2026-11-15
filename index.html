@@ -169,7 +169,7 @@
             display: grid; place-items: center; padding: 20px;
             background: #0c0a08cc;
         }
-        .recap-card { width: min(460px, 100%); padding: 20px; }
+        .recap-card { width: min(560px, 100%); max-height: 92vh; overflow-y: auto; padding: 20px; }
         .recap-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin: 14px 0; }
         .recap-stat { padding: 10px; text-align: center; }
         .recap-stat strong { display: block; font-size: 22px; }
@@ -177,15 +177,24 @@
         .recap-stat.loss strong { color: var(--red); }
         .recap-tasks { display: grid; gap: 6px; margin: 0 0 14px; padding: 0; list-style: none; }
         .recap-tasks li { padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--soft); font-size: 13px; }
-        .goal-rings { display: flex; flex-wrap: wrap; gap: 12px; margin: 12px 0; }
-        .goal-ring-wrap { display: grid; justify-items: center; gap: 5px; min-width: 82px; color: var(--muted); font-size: 11px; text-align: center; }
-        .goal-ring { display: grid; width: 76px; height: 76px; place-items: center; border-radius: 50%; background: conic-gradient(var(--goal-color) var(--goal-progress), #3a3328 0); }
-        .goal-ring::before { display: grid; width: 58px; height: 58px; place-items: center; border-radius: 50%; background: var(--card); color: var(--ink); content: attr(data-label); font-size: 12px; font-weight: 750; }
-        .goal-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
-        .goal-card { display: flex; align-items: center; gap: 12px; padding: 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--soft); }
+        .goal-rings { display: flex; flex-wrap: wrap; gap: 18px; margin: 12px 0; }
+        .goal-ring-wrap { display: grid; justify-items: center; gap: 8px; min-width: 140px; color: var(--ink); font-size: 14px; font-weight: 650; text-align: center; }
+        .goal-ring { display: grid; width: 124px; height: 124px; place-items: center; border-radius: 50%; background: conic-gradient(var(--goal-color) var(--goal-progress), #3a3328 0); }
+        .goal-ring::before { display: grid; width: 96px; height: 96px; place-items: center; border-radius: 50%; background: var(--card); color: var(--ink); content: attr(data-label); font-size: 17px; font-weight: 750; }
+        .goal-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 14px; }
+        .goal-card { display: flex; align-items: center; gap: 20px; padding: 22px; border: 1px solid var(--line); border-radius: 14px; background: var(--soft); }
+        .goal-actions { display: grid; gap: 8px; }
+        .nested-wrap { display: flex; align-items: center; gap: 32px; flex-wrap: wrap; width: 100%; }
+        .nested-wrap svg { flex: none; width: 280px; height: 280px; max-width: 100%; }
+        .nested-legend { display: grid; gap: 14px; flex: 1; min-width: 240px; margin: 0; padding: 0; list-style: none; }
+        .nested-legend li { display: flex; align-items: center; gap: 12px; font-size: 16px; }
+        .nested-legend .dot { width: 16px; height: 16px; flex: none; border-radius: 5px; background: var(--accent); }
+        .nested-legend .legend-name { flex: 1; font-weight: 700; }
+        .nested-legend .legend-count { color: var(--muted); font-size: 14px; font-weight: 700; white-space: nowrap; }
         .goal-copy { min-width: 0; flex: 1; }
+        .goal-copy strong { font-size: 18px; }
         .goal-copy strong { display: block; }
-        .goal-copy p { margin-top: 3px; font-size: 12px; }
+        .goal-copy p { margin-top: 6px; font-size: 14px; }
         .category-list { display: grid; gap: 7px; margin-top: 10px; }
         .category-row { display: flex; align-items: center; gap: 7px; padding: 7px; border: 1px solid var(--line); border-radius: 9px; background: var(--soft); }
         .category-row input[type="text"] { flex: 1; }
@@ -207,6 +216,25 @@
         .home-rings .goal-ring-wrap { min-width: 120px; font-size: 12px; }
         .home-rings .goal-ring { width: 112px; height: 112px; }
         .home-rings .goal-ring::before { width: 88px; height: 88px; font-size: 14px; }
+        .sched-form { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 8px; margin-bottom: 12px; padding: 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--soft); }
+        .sched-form .field { margin: 0; flex: 1 1 120px; }
+        .timeline { position: relative; overflow: hidden; border: 1px solid var(--line); border-radius: 10px; background: #17130e; }
+        .timeline-slot { position: absolute; left: 0; right: 0; height: 24px; border-top: 1px solid #2a2419; cursor: pointer; }
+        .timeline-slot.hour { border-top-color: #3a3328; }
+        .timeline-slot:hover { background: #211b13; }
+        .timeline.readonly .timeline-slot { cursor: default; }
+        .timeline.readonly .timeline-slot:hover { background: transparent; }
+        .timeline-label { position: absolute; left: 8px; top: 2px; color: var(--muted); font-size: 11px; pointer-events: none; }
+        .sched-block { position: absolute; left: 64px; right: 10px; z-index: 2; overflow: hidden; padding: 4px 28px 4px 9px; border: 1px solid var(--accent, var(--gold)); border-left-width: 4px; border-radius: 8px; color: var(--ink); background: color-mix(in srgb, var(--accent, #d4a54a) 24%, #1c1812); font-size: 12px; line-height: 1.3; }
+        .timeline:not(.readonly) .sched-block { cursor: pointer; }
+        .sched-block strong { display: block; font-size: 13px; }
+        .sched-block span { color: #d8ccb8; }
+        .sched-block.done { opacity: .6; }
+        .sched-remove { position: absolute; top: 3px; right: 4px; width: 20px; height: 20px; padding: 0; border: 0; border-radius: 5px; color: var(--red); background: transparent; font-size: 15px; line-height: 1; }
+        .sched-remove:hover { background: #3a2a22; }
+        .proposal-card { margin-bottom: 12px; padding: 14px; border: 1px solid #5a4a2c; border-radius: 12px; background: linear-gradient(120deg, #2c2418, #1a1611); }
+        .proposal-card p { margin: 6px 0 12px; }
+        .proposal-actions { display: flex; gap: 8px; margin-top: 12px; }
         @media (max-width: 820px) {
             .app.signed-in { grid-template-columns: 1fr; }
             .sidebar {
@@ -238,6 +266,7 @@
             <div class="seed-balance"><span>Seeds</span><strong id="sidebarSeeds">0</strong></div>
             <button class="nav-btn" type="button" data-tab="home" aria-selected="true">Home</button>
             <button class="nav-btn" type="button" data-tab="todo" aria-selected="false">Tasks</button>
+            <button class="nav-btn" type="button" data-tab="schedule" aria-selected="false">Schedule</button>
             <button class="nav-btn" type="button" data-tab="goals" aria-selected="false">Goals</button>
             <button class="nav-btn" type="button" data-tab="limits" aria-selected="false">Limits</button>
             <button class="nav-btn" type="button" data-tab="productivity" aria-selected="false">Focus sites</button>
@@ -343,15 +372,50 @@
 
                 <section id="goalsPanel" class="card panel tab-panel" data-tab-panel="goals" hidden>
                     <div class="page-head"><div><div class="eyebrow">Grow steadily</div><h1>Your goals</h1><p>Goals fill with the minutes you log on tasks.</p></div></div>
-                    <form id="goalForm" class="task-form">
-                        <input id="goalTitleInput" type="text" maxlength="80" placeholder="Goal name" aria-label="Goal name" required>
-                        <input id="goalMinutesInput" type="number" min="1" max="10080" step="1" value="60" aria-label="Goal minutes" title="Minutes to log" required>
-                        <select id="goalPeriodInput" aria-label="Goal period"><option value="daily">Minutes each day</option><option value="weekly">Minutes each week</option></select>
-                        <select id="goalCategoryInput" aria-label="Category (optional)"><option value="">Any category</option></select>
-                        <input id="goalColorInput" type="color" value="#d4a54a" aria-label="Goal color">
-                        <button class="primary" type="submit">Add goal</button>
-                    </form>
+                    <button class="primary" id="openGoalForm" type="button" style="margin-bottom:16px">＋ Add a goal</button>
                     <div id="goalList" class="goal-grid"></div>
+                </section>
+
+                <!-- SCHEDULE: a plan for the day. It does not affect seeds or goals; clicking a block completes that task. -->
+                <section id="schedulePanel" class="tab-panel" data-tab-panel="schedule" hidden>
+                    <div class="page-head">
+                        <div>
+                            <div class="eyebrow">Plan the day</div>
+                            <h1>Schedule</h1>
+                            <p>Place tasks in time blocks. It's only a plan: nothing here is required. Click a block to complete that task.</p>
+                        </div>
+                    </div>
+                    <div class="card panel" style="margin-bottom:12px">
+                        <div class="panel-head"><h2>Build it with AI</h2><p>Describe what you want your day to look like. Your task list is sent along with your message.</p></div>
+                        <form id="aiScheduleForm">
+                            <textarea id="aiScheduleMessage" maxlength="1000" placeholder="e.g. Workout early, focused study after lunch, something social in the evening, and a long break at 3" aria-label="What do you want your schedule to look like?" required></textarea>
+                            <div class="form-actions">
+                                <span id="aiScheduleStatus" class="volume-hint" role="status" aria-live="polite"></span>
+                                <button class="primary" id="aiScheduleSubmit" type="submit">Suggest a schedule</button>
+                            </div>
+                        </form>
+                    </div>
+                    <div id="scheduleProposal" class="proposal-card" hidden>
+                        <h3>Suggested schedule</h3>
+                        <p id="proposalSummary"></p>
+                        <div id="proposalTimeline"></div>
+                        <div class="proposal-actions">
+                            <button class="primary" id="keepProposal" type="button">Keep this schedule</button>
+                            <button class="subtle" id="discardProposal" type="button">Discard</button>
+                        </div>
+                        <p class="footnote">Keeping it replaces your current schedule.</p>
+                    </div>
+                    <div class="card panel">
+                        <div class="panel-head"><h2>Your day</h2><p>Click an empty slot to pick a start time, or add a block below.</p></div>
+                        <form id="scheduleForm" class="sched-form">
+                            <div class="field"><label for="scheduleTaskInput">Task</label><select id="scheduleTaskInput" required></select></div>
+                            <div class="field"><label for="scheduleStartInput">Start</label><select id="scheduleStartInput"></select></div>
+                            <div class="field"><label for="scheduleMinutesInput">Minutes</label><input id="scheduleMinutesInput" type="number" min="5" max="720" step="5" value="30" required></div>
+                            <button class="primary" type="submit">Add to schedule</button>
+                        </form>
+                        <div id="scheduleTimeline"></div>
+                        <div class="form-actions"><span class="volume-hint">6am to 10pm</span><button class="subtle danger" id="clearSchedule" type="button">Clear schedule</button></div>
+                    </div>
                 </section>
 
                 <section id="limitsPanel" class="card panel tab-panel" data-tab-panel="limits" hidden>
@@ -486,6 +550,21 @@
         </form>
     </div>
 
+    <div id="goalEditor" class="overlay" hidden>
+        <form id="goalForm" class="card overlay-card" style="max-width:500px">
+            <div class="overlay-head"><div><div class="eyebrow">Goals</div><h1 id="goalEditorTitle">Add a goal</h1></div><button class="subtle" id="closeGoalForm" type="button" aria-label="Close">Close</button></div>
+            <div class="overlay-grid">
+                <div class="field wide"><label for="goalTitleInput">Goal name</label><input id="goalTitleInput" type="text" maxlength="80" placeholder="e.g. Physical hour" required></div>
+                <div class="field"><label for="goalMinutesInput">Minutes to log</label><input id="goalMinutesInput" type="number" min="1" max="10080" step="1" value="60" required></div>
+                <div class="field"><label for="goalPeriodInput">How often</label><select id="goalPeriodInput"><option value="daily">Each day</option><option value="weekly">Each week</option></select></div>
+                <div class="field"><label for="goalCategoryInput">Category</label><select id="goalCategoryInput"><option value="">Any category</option></select></div>
+                <div class="field"><label for="goalColorInput">Color</label><input id="goalColorInput" type="color" value="#d4a54a"></div>
+            </div>
+            <div id="goalFormMessage" class="message" role="status"></div>
+            <div class="overlay-actions"><button class="subtle" id="cancelGoalForm" type="button">Cancel</button><button class="primary" id="goalSubmit" type="submit">Add goal</button></div>
+        </form>
+    </div>
+
     <div id="taskCompleteScreen" class="overlay" hidden>
         <form id="taskCompleteForm" class="card overlay-card" style="max-width:460px">
             <div class="overlay-head"><div><div class="eyebrow">Task reflection</div><h1 id="completeTaskTitle">Complete task</h1></div></div>
@@ -516,7 +595,7 @@
             addProductiveSite, removeProductiveSite, setSiteSeedRate, setProductivitySeedRate,
             addTodoTask, updateTodoTask, completeTodoTask, removeTodoTask,
             addTaskCategory, updateTaskCategory, removeTaskCategory,
-            addGoal, removeGoal, taskSeedRate, qualityMultiplier, addSleepModeSite,
+            addGoal, updateGoal, removeGoal, setSchedule, taskSeedRate, qualityMultiplier, addSleepModeSite,
             removeSleepModeSite, addSleepSchedule, removeSleepSchedule,
             addCoinReward, removeCoinReward, redeemCoinReward,
             addCoinPenalty, removeCoinPenalty, redeemCoinPenalty,
@@ -595,7 +674,7 @@
                 .reduce((sum, task) => sum + (Number(task.minutesSpent) || 0), 0);
         }
 
-        function goalRing(goal, count, label = "") {
+        function goalRing(goal, count, label = "", showName = true) {
             const category = (latestData?.taskCategories || []).find((item) => item.id === goal.categoryId);
             const color = goal.color || category?.color || "#d4a54a";
             const percent = Math.min(100, Math.round(count / goalTarget(goal) * 100));
@@ -607,9 +686,11 @@
             ring.style.setProperty("--goal-progress", `${percent}%`);
             ring.dataset.label = `${count}/${goalTarget(goal)}m`;
             wrap.append(ring);
-            const name = document.createElement("span");
-            name.textContent = `${goal.title}${label ? ` · ${label}` : ""}`;
-            wrap.append(name);
+            if (showName) {
+                const name = document.createElement("span");
+                name.textContent = `${goal.title}${label ? ` · ${label}` : ""}`;
+                wrap.append(name);
+            }
             return wrap;
         }
 
@@ -638,14 +719,14 @@
                 const count = goalCount(goal, latestData.dailySeedStats, start);
                 const card = document.createElement("article");
                 card.className = "goal-card";
-                card.append(goalRing(goal, count, goal.period === "weekly" ? "this week" : "today"));
+                card.append(goalRing(goal, count, "", false));
                 const copy = document.createElement("div");
                 copy.className = "goal-copy";
                 const title = document.createElement("strong");
                 title.textContent = goal.title;
                 const category = (latestData.taskCategories || []).find((item) => item.id === goal.categoryId);
                 const description = document.createElement("p");
-                description.textContent = `${count} of ${goalTarget(goal)} min${category ? ` · ${category.name}` : " · any category"}`;
+                description.textContent = `${goal.period === "weekly" ? "This week" : "Today"}: ${count} of ${goalTarget(goal)} min${category ? ` · ${category.name}` : " · any category"}`;
                 copy.append(title, description);
                 const remove = document.createElement("button");
                 remove.type = "button";
@@ -655,7 +736,15 @@
                     try { await removeGoal(currentUser.email, goal.id); }
                     catch (error) { showMessage(dashboardMessage, readableError(error)); }
                 });
-                card.append(copy, remove);
+                const edit = document.createElement("button");
+                edit.type = "button";
+                edit.className = "subtle";
+                edit.textContent = "Edit";
+                edit.addEventListener("click", () => openGoalEditor(goal));
+                const actions = document.createElement("div");
+                actions.className = "goal-actions";
+                actions.append(edit, remove);
+                card.append(copy, actions);
                 list.append(card);
             }
         }
@@ -842,11 +931,11 @@
         const QUALITY_BANDS = [[20, "Barely"], [40, "Rough"], [60, "As expected"], [80, "Went well"], [101, "Outstanding"]];
         const qualityBand = (quality) => QUALITY_BANDS.find(([limit]) => quality < limit)[1];
 
-        function openCompletion(task) {
+        function openCompletion(task, minutes) {
             completingTask = task;
             document.getElementById("completeTaskTitle").textContent = task.title;
             document.getElementById("completionQualityInput").value = "50";
-            document.getElementById("completionMinutesInput").value = task.minutes || 0;
+            document.getElementById("completionMinutesInput").value = minutes ?? task.minutes ?? 0;
             updateCompletionReward();
             document.getElementById("taskCompleteScreen").hidden = false;
         }
@@ -868,12 +957,309 @@
                 : "";
         }
 
+        // ---------- schedule ----------
+        // TODO: replace with the real address of the Sesame server.
+        const SCHED_API_URL = "https://placeholder.url/api/sched";
+        const SCHED_START = 6 * 60;
+        const SCHED_END = 22 * 60;
+        const HOUR_PX = 48;
+        const TIME_PATTERN = /^([01]\d|2[0-3]):([0-5]\d)$/;
+        let proposedSchedule = null;
+
+        const timeToMinutes = (time) => {
+            const [hours, minutes] = String(time).split(":").map(Number);
+            return hours * 60 + minutes;
+        };
+        const minutesToTime = (total) => `${String(Math.floor(total / 60)).padStart(2, "0")}:${String(total % 60).padStart(2, "0")}`;
+        function clockLabel(total) {
+            const hours = Math.floor(total / 60) % 24;
+            const minutes = total % 60;
+            return `${hours % 12 || 12}${minutes ? `:${String(minutes).padStart(2, "0")}` : ""}${hours >= 12 ? "pm" : "am"}`;
+        }
+
+        function taskDisplayColor(task) {
+            const category = (latestData?.taskCategories || []).find((item) => item.id === task.categoryId);
+            return task.color || category?.color || "#d4a54a";
+        }
+
+        const overlapsSchedule = (blocks, start, minutes) => blocks.some((block) =>
+            start < timeToMinutes(block.start) + block.minutes && timeToMinutes(block.start) < start + minutes);
+
+        // Keep only blocks for known tasks that fit the day without overlapping.
+        function cleanProposal(blocks, tasks) {
+            const ids = new Set(tasks.map((task) => task.id));
+            const valid = [];
+            for (const block of Array.isArray(blocks) ? blocks : []) {
+                if (!ids.has(block?.taskId) || !TIME_PATTERN.test(String(block.start))) continue;
+                const start = timeToMinutes(block.start);
+                const minutes = Math.round(Number(block.minutes) || 0);
+                if (start < SCHED_START || minutes < 5 || start + minutes > SCHED_END) continue;
+                valid.push({ id: String(block.id || crypto.randomUUID()), taskId: block.taskId, start: block.start, minutes });
+            }
+            valid.sort((a, b) => timeToMinutes(a.start) - timeToMinutes(b.start));
+            const result = [];
+            let cursor = 0;
+            for (const block of valid) {
+                if (timeToMinutes(block.start) < cursor) continue;
+                result.push(block);
+                cursor = timeToMinutes(block.start) + block.minutes;
+            }
+            return result;
+        }
+
+        function renderTimeline(container, blocks, { interactive = false } = {}) {
+            container.replaceChildren();
+            const timeline = document.createElement("div");
+            timeline.className = `timeline${interactive ? "" : " readonly"}`;
+            timeline.style.height = `${(SCHED_END - SCHED_START) / 60 * HOUR_PX}px`;
+            for (let t = SCHED_START; t < SCHED_END; t += 30) {
+                const slot = document.createElement("div");
+                slot.className = `timeline-slot${t % 60 === 0 ? " hour" : ""}`;
+                slot.style.top = `${(t - SCHED_START) / 60 * HOUR_PX}px`;
+                if (t % 60 === 0) {
+                    const label = document.createElement("span");
+                    label.className = "timeline-label";
+                    label.textContent = clockLabel(t);
+                    slot.append(label);
+                }
+                if (interactive) {
+                    slot.addEventListener("click", () => {
+                        document.getElementById("scheduleStartInput").value = minutesToTime(t);
+                        document.getElementById("scheduleTaskInput").focus();
+                    });
+                }
+                timeline.append(slot);
+            }
+            const tasks = latestData?.todoTasks || [];
+            const doneToday = new Set((latestData?.dailySeedStats?.[localDateKey()]?.completedTasks || []).map((entry) => entry.taskId));
+            for (const block of blocks) {
+                const task = tasks.find((item) => item.id === block.taskId);
+                if (!task) continue;
+                const start = timeToMinutes(block.start);
+                const end = start + block.minutes;
+                const from = Math.max(start, SCHED_START);
+                const to = Math.min(end, SCHED_END);
+                if (to <= from) continue;
+                const node = document.createElement("div");
+                node.className = `sched-block${doneToday.has(task.id) ? " done" : ""}`;
+                node.style.setProperty("--accent", taskDisplayColor(task));
+                node.style.top = `${(from - SCHED_START) / 60 * HOUR_PX}px`;
+                node.style.height = `${Math.max(22, (to - from) / 60 * HOUR_PX - 2)}px`;
+                const title = document.createElement("strong");
+                title.textContent = `${doneToday.has(task.id) ? "✓ " : ""}${task.title}`;
+                const time = document.createElement("span");
+                time.textContent = `${clockLabel(start)}–${clockLabel(end)} · ${block.minutes} min`;
+                node.append(title, time);
+                if (interactive) {
+                    node.tabIndex = 0;
+                    node.setAttribute("role", "button");
+                    node.title = "Click to complete this task";
+                    node.addEventListener("click", () => openCompletion(task, block.minutes));
+                    node.addEventListener("keydown", (event) => {
+                        if (event.target === node && event.key === "Enter") openCompletion(task, block.minutes);
+                    });
+                    const remove = document.createElement("button");
+                    remove.type = "button";
+                    remove.className = "sched-remove";
+                    remove.textContent = "×";
+                    remove.setAttribute("aria-label", `Remove ${task.title} from the schedule`);
+                    remove.addEventListener("click", async (event) => {
+                        event.stopPropagation();
+                        try { await setSchedule(currentUser.email, (latestData.schedule || []).filter((item) => item.id !== block.id)); }
+                        catch (error) { showMessage(dashboardMessage, readableError(error)); }
+                    });
+                    node.append(remove);
+                }
+                timeline.append(node);
+            }
+            container.append(timeline);
+        }
+
+        function renderSchedule(data) {
+            const tasks = data.todoTasks || [];
+            const taskSelect = document.getElementById("scheduleTaskInput");
+            const previousTask = taskSelect.value;
+            taskSelect.replaceChildren();
+            for (const task of tasks) taskSelect.add(new Option(task.title, task.id));
+            if (tasks.some((task) => task.id === previousTask)) taskSelect.value = previousTask;
+            const startSelect = document.getElementById("scheduleStartInput");
+            if (!startSelect.options.length) {
+                for (let t = SCHED_START; t < SCHED_END; t += 15) startSelect.add(new Option(clockLabel(t), minutesToTime(t)));
+            }
+            document.querySelector("#scheduleForm button[type=submit]").disabled = !tasks.length;
+            renderTimeline(document.getElementById("scheduleTimeline"), data.schedule || [], { interactive: true });
+            document.getElementById("scheduleProposal").hidden = !proposedSchedule;
+            if (proposedSchedule) {
+                document.getElementById("proposalSummary").textContent = proposedSchedule.summary || "Here is a schedule based on your request.";
+                renderTimeline(document.getElementById("proposalTimeline"), proposedSchedule.blocks);
+            }
+        }
+
+        document.getElementById("scheduleTaskInput").addEventListener("change", (event) => {
+            const task = (latestData?.todoTasks || []).find((item) => item.id === event.target.value);
+            if (task) document.getElementById("scheduleMinutesInput").value = Math.max(5, Math.round((Number(task.minutes) || 30) / 5) * 5);
+        });
+
+        document.getElementById("scheduleForm").addEventListener("submit", async (event) => {
+            event.preventDefault();
+            const taskId = document.getElementById("scheduleTaskInput").value;
+            const start = document.getElementById("scheduleStartInput").value;
+            const minutes = Number(document.getElementById("scheduleMinutesInput").value);
+            if (!taskId || !TIME_PATTERN.test(start)) { showMessage(dashboardMessage, "Pick a task and a start time."); return; }
+            if (!Number.isInteger(minutes) || minutes < 5 || minutes > 720) { showMessage(dashboardMessage, "Use a whole number of minutes from 5 to 720."); return; }
+            const startMinutes = timeToMinutes(start);
+            if (startMinutes + minutes > SCHED_END) { showMessage(dashboardMessage, "That block runs past 10pm."); return; }
+            const current = latestData?.schedule || [];
+            if (overlapsSchedule(current, startMinutes, minutes)) { showMessage(dashboardMessage, "That overlaps another block."); return; }
+            try {
+                await setSchedule(currentUser.email, [...current, { taskId, start, minutes }]);
+                showMessage(dashboardMessage, "Added to your schedule.", true);
+            } catch (error) { showMessage(dashboardMessage, readableError(error)); }
+        });
+
+        document.getElementById("clearSchedule").addEventListener("click", async () => {
+            if (!(latestData?.schedule || []).length || !confirm("Clear your whole schedule?")) return;
+            try { await setSchedule(currentUser.email, []); }
+            catch (error) { showMessage(dashboardMessage, readableError(error)); }
+        });
+
+        // Ask the server (which calls the AI) for a full schedule. The user's task
+        // list and message are sent; the result is only a proposal until they keep it.
+        document.getElementById("aiScheduleForm").addEventListener("submit", async (event) => {
+            event.preventDefault();
+            const status = document.getElementById("aiScheduleStatus");
+            const button = document.getElementById("aiScheduleSubmit");
+            const tasks = latestData?.todoTasks || [];
+            const message = document.getElementById("aiScheduleMessage").value.trim();
+            if (!tasks.length) { status.textContent = "Add some tasks first."; return; }
+            if (!message) return;
+            const payload = {
+                message,
+                dayStart: minutesToTime(SCHED_START),
+                dayEnd: minutesToTime(SCHED_END),
+                tasks: tasks.map((task) => ({
+                    id: task.id,
+                    title: task.title,
+                    description: task.description || "",
+                    category: (latestData.taskCategories || []).find((item) => item.id === task.categoryId)?.name || "",
+                    minutes: Number(task.minutes) || 0,
+                    intensity: Number(task.intensity) || 0
+                })),
+                currentSchedule: (latestData.schedule || []).map(({ taskId, start, minutes }) => ({ taskId, start, minutes }))
+            };
+            button.disabled = true;
+            status.textContent = "Building your schedule…";
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), 60_000);
+            try {
+                const response = await fetch(SCHED_API_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload),
+                    signal: controller.signal
+                });
+                if (!response.ok) throw new Error(`The schedule service returned an error (${response.status}).`);
+                const result = await response.json();
+                const blocks = cleanProposal(result.schedule, tasks);
+                if (!blocks.length) throw new Error("The schedule service didn't return any usable blocks. Try rewording your request.");
+                proposedSchedule = { blocks, summary: String(result.summary || "") };
+                status.textContent = "";
+                renderSchedule(latestData);
+                document.getElementById("scheduleProposal").scrollIntoView({ behavior: "smooth", block: "start" });
+            } catch (error) {
+                status.textContent = error.name === "AbortError" || error instanceof TypeError
+                    ? "Couldn't reach the schedule service. Please try again."
+                    : error.message;
+            } finally {
+                clearTimeout(timer);
+                button.disabled = false;
+            }
+        });
+
+        document.getElementById("keepProposal").addEventListener("click", async () => {
+            if (!proposedSchedule) return;
+            try {
+                await setSchedule(currentUser.email, proposedSchedule.blocks);
+                proposedSchedule = null;
+                renderSchedule(latestData);
+                showMessage(dashboardMessage, "Schedule saved.", true);
+            } catch (error) { showMessage(dashboardMessage, readableError(error)); }
+        });
+
+        document.getElementById("discardProposal").addEventListener("click", () => {
+            proposedSchedule = null;
+            renderSchedule(latestData);
+        });
+
         function dailyGoalPercent(data) {
             const goals = (data.goals || []).filter((goal) => goal.period !== "weekly");
             if (!goals.length) return 0;
             const today = localDateKey();
             const total = goals.reduce((sum, goal) => sum + Math.min(1, goalCount(goal, data.dailySeedStats, today, today) / goalTarget(goal)), 0);
             return Math.round(total / goals.length * 100);
+        }
+
+        // Home page: one ring per goal, nested inside each other. The outermost
+        // ring is the first goal; each ring fills with the goal's own color.
+        function buildNestedRings(items) {
+            const NS = "http://www.w3.org/2000/svg";
+            const svg = document.createElementNS(NS, "svg");
+            svg.setAttribute("viewBox", "0 0 200 200");
+            svg.setAttribute("role", "img");
+            const overall = Math.round(items.reduce((sum, item) => sum + item.fraction, 0) / items.length * 100);
+            svg.setAttribute("aria-label", `Goals ${overall}% complete`);
+            const step = Math.min(18, 62 / items.length);
+            const width = Math.max(5, step * 0.7);
+            const ring = (radius, color, length, opacity) => {
+                const circle = document.createElementNS(NS, "circle");
+                circle.setAttribute("cx", "100");
+                circle.setAttribute("cy", "100");
+                circle.setAttribute("r", String(radius));
+                circle.setAttribute("fill", "none");
+                circle.setAttribute("stroke", color);
+                circle.setAttribute("stroke-width", String(width));
+                circle.setAttribute("stroke-linecap", length < 100 ? "round" : "butt");
+                circle.setAttribute("pathLength", "100");
+                circle.setAttribute("stroke-dasharray", `${length} ${100 - length}`);
+                circle.setAttribute("transform", "rotate(-90 100 100)");
+                circle.setAttribute("opacity", String(opacity));
+                return circle;
+            };
+            items.forEach((item, index) => {
+                const radius = 96 - width / 2 - index * step;
+                svg.append(ring(radius, item.color, 100, 0.2));
+                if (item.fraction > 0) svg.append(ring(radius, item.color, item.fraction * 100, 1));
+            });
+            const percent = document.createElementNS(NS, "text");
+            percent.setAttribute("x", "100");
+            percent.setAttribute("y", "108");
+            percent.setAttribute("text-anchor", "middle");
+            percent.setAttribute("font-size", "26");
+            percent.setAttribute("font-weight", "750");
+            percent.style.fill = "var(--ink)";
+            percent.textContent = `${overall}%`;
+            svg.append(percent);
+            return svg;
+        }
+
+        function buildNestedLegend(items) {
+            const list = document.createElement("ul");
+            list.className = "nested-legend";
+            for (const item of items) {
+                const row = document.createElement("li");
+                row.style.setProperty("--accent", item.color);
+                const dot = document.createElement("span");
+                dot.className = "dot";
+                const name = document.createElement("span");
+                name.className = "legend-name";
+                name.textContent = item.label;
+                const count = document.createElement("span");
+                count.className = "legend-count";
+                count.textContent = `${item.done} / ${item.target} min${item.done >= item.target ? " ✓" : ""}`;
+                row.append(dot, name, count);
+                list.append(row);
+            }
+            return list;
         }
 
         function renderHome(data) {
@@ -889,15 +1275,24 @@
             document.getElementById("homeSummary").textContent = daily.length
                 ? `${dailyGoalPercent(data)}% of today's goals complete`
                 : "Add a goal to start tracking your time.";
-            const fillRings = (id, list, label) => {
+            const fillRings = (id, list) => {
                 const box = document.getElementById(id);
                 box.replaceChildren();
-                for (const goal of list) box.append(goalRing(goal, goalCount(goal, data.dailySeedStats, goalStart(goal.period)), label));
+                if (!list.length) return;
+                const items = list.map((goal) => {
+                    const done = goalCount(goal, data.dailySeedStats, goalStart(goal.period));
+                    const target = goalTarget(goal);
+                    return { color: goal.color || "#d4a54a", label: goal.title, done, target, fraction: Math.min(1, done / target) };
+                });
+                const wrap = document.createElement("div");
+                wrap.className = "nested-wrap";
+                wrap.append(buildNestedRings(items), buildNestedLegend(items));
+                box.append(wrap);
             };
-            fillRings("homeDailyRings", daily, "today");
+            fillRings("homeDailyRings", daily);
             if (!daily.length) document.getElementById("homeDailyRings").textContent = "No daily goals yet. Add one on the Goals page.";
             document.getElementById("homeWeeklyCard").hidden = !weekly.length;
-            fillRings("homeWeeklyRings", weekly, "this week");
+            fillRings("homeWeeklyRings", weekly);
 
             const list = document.getElementById("homeTasks");
             list.replaceChildren();
@@ -1194,6 +1589,7 @@
             renderCategories(latestData.taskCategories || []);
             renderGoals(latestData.goals || []);
             renderHome(latestData);
+            renderSchedule(latestData);
             renderCoinItems("rewardList", latestData.rewards || [], "reward");
             renderCoinItems("penaltyList", latestData.coinPenalties || [], "penalty");
             renderSiteCollection("sleepSiteList", latestData.sleepModeSites || [], (site) => removeSleepModeSite(currentUser.email, site), () => "Always blocked");
@@ -1311,6 +1707,37 @@
             } catch (error) { showMessage(dashboardMessage, readableError(error)); }
         });
 
+        // Adding and editing a goal happen in a popup.
+        let editingGoalId = null;
+        function openGoalEditor(goal = null) {
+            editingGoalId = goal?.id || null;
+            document.getElementById("goalEditorTitle").textContent = goal ? "Edit goal" : "Add a goal";
+            document.getElementById("goalSubmit").textContent = goal ? "Save changes" : "Add goal";
+            document.getElementById("goalTitleInput").value = goal?.title || "";
+            document.getElementById("goalMinutesInput").value = goal ? goalTarget(goal) : 60;
+            document.getElementById("goalPeriodInput").value = goal?.period === "weekly" ? "weekly" : "daily";
+            const hasCategory = (latestData?.taskCategories || []).some((item) => item.id === goal?.categoryId);
+            document.getElementById("goalCategoryInput").value = hasCategory ? goal.categoryId : "";
+            document.getElementById("goalColorInput").value = goal?.color || "#d4a54a";
+            document.getElementById("goalFormMessage").textContent = "";
+            document.getElementById("goalEditor").hidden = false;
+            document.getElementById("goalTitleInput").focus();
+        }
+        function closeGoalEditor() {
+            document.getElementById("goalEditor").hidden = true;
+            editingGoalId = null;
+        }
+        document.getElementById("openGoalForm").addEventListener("click", () => openGoalEditor());
+        for (const id of ["closeGoalForm", "cancelGoalForm"]) {
+            document.getElementById(id).addEventListener("click", closeGoalEditor);
+        }
+        document.getElementById("goalEditor").addEventListener("click", (event) => {
+            if (event.target.id === "goalEditor") closeGoalEditor();
+        });
+        document.addEventListener("keydown", (event) => {
+            if (event.key === "Escape") closeGoalEditor();
+        });
+
         document.getElementById("goalCategoryInput").addEventListener("change", (event) => {
             const category = (latestData?.taskCategories || []).find((item) => item.id === event.target.value);
             if (category?.color) document.getElementById("goalColorInput").value = category.color;
@@ -1320,20 +1747,23 @@
             event.preventDefault();
             const minutes = Number(document.getElementById("goalMinutesInput").value);
             if (!Number.isInteger(minutes) || minutes < 1 || minutes > 10080) {
-                showMessage(dashboardMessage, "Enter a whole number of minutes for the goal.");
+                showMessage(document.getElementById("goalFormMessage"), "Enter a whole number of minutes for the goal.");
                 return;
             }
+            const fields = {
+                title: document.getElementById("goalTitleInput").value,
+                minutes,
+                categoryId: document.getElementById("goalCategoryInput").value,
+                period: document.getElementById("goalPeriodInput").value,
+                color: document.getElementById("goalColorInput").value
+            };
             try {
-                await addGoal(currentUser.email, {
-                    title: document.getElementById("goalTitleInput").value,
-                    minutes,
-                    categoryId: document.getElementById("goalCategoryInput").value,
-                    period: document.getElementById("goalPeriodInput").value,
-                    color: document.getElementById("goalColorInput").value
-                });
+                if (editingGoalId) await updateGoal(currentUser.email, editingGoalId, fields);
+                else await addGoal(currentUser.email, fields);
+                showMessage(dashboardMessage, editingGoalId ? "Goal updated." : "Goal added.", true);
                 document.getElementById("goalForm").reset();
-                showMessage(dashboardMessage, "Goal added.", true);
-            } catch (error) { showMessage(dashboardMessage, readableError(error)); }
+                closeGoalEditor();
+            } catch (error) { showMessage(document.getElementById("goalFormMessage"), readableError(error)); }
         });
         document.getElementById("recapDismiss").addEventListener("click", () => {
             document.getElementById("dailyRecap").hidden = true;

@@ -77,6 +77,7 @@ const defaults = {
     taskCategories: DEFAULT_CATEGORIES,
     goals: DEFAULT_GOALS,
     defaultGoalsSeeded: true,
+    schedule: [],
     rewards: [],
     coinPenalties: [],
     sleepModeSites: [],
@@ -408,7 +409,9 @@ export async function completeTodoTask(email, taskId, { quality = 50, minutesSpe
 
 export async function removeTodoTask(email, taskId) {
     await changeUserData(email, (data) => ({
-        todoTasks: (data.todoTasks || []).filter((task) => task.id !== taskId)
+        todoTasks: (data.todoTasks || []).filter((task) => task.id !== taskId),
+        // A deleted task can't stay on the schedule.
+        schedule: (data.schedule || []).filter((block) => block.taskId !== taskId)
     }));
 }
 
@@ -568,6 +571,41 @@ export async function updateGoal(email, goalId, fields) {
 
 export async function removeGoal(email, goalId) {
     await changeUserData(email, (data) => ({ goals: (data.goals || []).filter((goal) => goal.id !== goalId) }));
+}
+
+// Schedule: a plan for the day made of blocks { id, taskId, start: "HH:MM",
+// minutes }. It is only a plan and does not affect seeds, goals or anything else.
+const SCHEDULE_TIME = /^([01]\d|2[0-3]):([0-5]\d)$/;
+const scheduleMinutes = (time) => {
+    const [hours, minutes] = time.split(":").map(Number);
+    return hours * 60 + minutes;
+};
+
+function cleanSchedule(blocks) {
+    const clean = [];
+    for (const block of Array.isArray(blocks) ? blocks : []) {
+        if (!block?.taskId || !SCHEDULE_TIME.test(String(block.start))) continue;
+        const start = scheduleMinutes(block.start);
+        const minutes = Math.min(Math.max(5, Math.min(720, Math.round(Number(block.minutes) || 0))), 1440 - start);
+        if (minutes < 5) continue;
+        clean.push({ id: String(block.id || crypto.randomUUID()), taskId: String(block.taskId), start: block.start, minutes });
+    }
+    clean.sort((a, b) => scheduleMinutes(a.start) - scheduleMinutes(b.start));
+    // Drop any block that overlaps the one before it.
+    const result = [];
+    let cursor = 0;
+    for (const block of clean) {
+        if (scheduleMinutes(block.start) < cursor) continue;
+        result.push(block);
+        cursor = scheduleMinutes(block.start) + block.minutes;
+    }
+    return result;
+}
+
+export async function setSchedule(email, blocks) {
+    const schedule = cleanSchedule(blocks);
+    await changeUserData(email, () => ({ schedule }));
+    return schedule;
 }
 
 // Remember the local calendar day of the last dashboard open so the recap
