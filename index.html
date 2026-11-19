@@ -218,6 +218,14 @@
         .home-rings .goal-ring::before { width: 88px; height: 88px; font-size: 14px; }
         .sched-form { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 8px; margin-bottom: 12px; padding: 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--soft); }
         .sched-form .field { margin: 0; flex: 1 1 120px; }
+        .schedule-date-nav { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+        .schedule-date-nav input { width: auto; }
+        .weekday-picks { display: flex; flex-wrap: wrap; gap: 7px; align-items: center; }
+        .weekday-picks label { display: inline-flex; align-items: center; gap: 3px; }
+        .weekday-picks input { width: 14px; height: 14px; accent-color: var(--gold); }
+        .schedule-task-bank { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line); }
+        .schedule-task[draggable="true"] { cursor: grab; }
+        .schedule-task[draggable="true"]:active { cursor: grabbing; }
         .timeline { position: relative; overflow: hidden; border: 1px solid var(--line); border-radius: 10px; background: #17130e; }
         .timeline-slot { position: absolute; left: 0; right: 0; height: 24px; border-top: 1px solid #2a2419; cursor: pointer; }
         .timeline-slot.hour { border-top-color: #3a3328; }
@@ -230,6 +238,11 @@
         .sched-block strong { display: block; font-size: 13px; }
         .sched-block span { color: #d8ccb8; }
         .sched-block.done { opacity: .6; }
+        .sched-block .resize-handle { position: absolute; left: 0; right: 0; z-index: 3; height: 8px; cursor: ns-resize; background: transparent; }
+        .sched-block .resize-handle:hover { background: #ffffff22; }
+        .sched-block .resize-handle.top { top: 0; }
+        .sched-block .resize-handle.bottom { bottom: 0; }
+        .timeline.drag-over { outline: 2px solid var(--gold); outline-offset: -2px; }
         .sched-remove { position: absolute; top: 3px; right: 4px; width: 20px; height: 20px; padding: 0; border: 0; border-radius: 5px; color: var(--red); background: transparent; font-size: 15px; line-height: 1; }
         .sched-remove:hover { background: #3a2a22; }
         .proposal-card { margin-bottom: 12px; padding: 14px; border: 1px solid #5a4a2c; border-radius: 12px; background: linear-gradient(120deg, #2c2418, #1a1611); }
@@ -320,7 +333,7 @@
                         <div id="homeWeeklyRings" class="goal-rings home-rings"></div>
                     </div>
                     <div class="card panel" style="margin-top:12px">
-                        <div class="panel-head"><h2>Log a task</h2><p>Pick a task from your bank.</p></div>
+                        <div class="panel-head"><h2>Today's schedule</h2><p>Only tasks scheduled for today appear here. Log them as you finish.</p></div>
                         <div id="homeTasks" class="item-list"></div>
                     </div>
                 </section>
@@ -406,19 +419,33 @@
                         <p class="footnote">Keeping it replaces your current schedule.</p>
                     </div>
                     <div class="card panel">
-                        <div class="panel-head"><h2>Your day</h2><p>Click an empty slot to pick a start time, or add a block below.</p></div>
+                        <div class="panel-head"><h2 id="scheduleDayHeading">Your day</h2><p>Drag tasks into the calendar. Pull a block's top or bottom edge to change its length.</p></div>
+                        <div class="schedule-date-nav"><button class="subtle" id="schedulePrevDay" type="button" aria-label="Previous day">‹</button><input id="scheduleDateInput" type="date" aria-label="Schedule date"><button class="subtle" id="scheduleNextDay" type="button" aria-label="Next day">›</button><button class="subtle" id="scheduleToday" type="button">Today</button></div>
                         <form id="scheduleForm" class="sched-form">
                             <div class="field"><label for="scheduleTaskInput">Task</label><select id="scheduleTaskInput" required></select></div>
                             <div class="field"><label for="scheduleStartInput">Start</label><select id="scheduleStartInput"></select></div>
                             <div class="field"><label for="scheduleMinutesInput">Minutes</label><input id="scheduleMinutesInput" type="number" min="5" max="720" step="5" value="30" required></div>
+                            <div class="field"><label for="scheduleRepeatInput">Repeat</label><select id="scheduleRepeatInput"><option value="none">Does not repeat</option><option value="daily">Every day</option><option value="weekdays">Every weekday</option><option value="weekends">Every weekend</option><option value="custom">Choose days</option></select></div>
+                            <div class="weekday-picks" id="scheduleWeekdays" hidden aria-label="Repeat on days"><label><input type="checkbox" value="1"> Mon</label><label><input type="checkbox" value="2"> Tue</label><label><input type="checkbox" value="3"> Wed</label><label><input type="checkbox" value="4"> Thu</label><label><input type="checkbox" value="5"> Fri</label><label><input type="checkbox" value="6"> Sat</label><label><input type="checkbox" value="0"> Sun</label></div>
                             <button class="primary" type="submit">Add to schedule</button>
+                            <button class="subtle" id="cancelScheduleEdit" type="button" hidden>Cancel edit</button>
                         </form>
                         <div id="scheduleTimeline"></div>
-                        <div class="form-actions"><span class="volume-hint">6am to 10pm</span><button class="subtle danger" id="clearSchedule" type="button">Clear schedule</button></div>
+                        <div class="form-actions"><span class="volume-hint">6am to 10pm</span><button class="subtle danger" id="clearSchedule" type="button">Clear this day</button></div>
+                        <div class="schedule-task-bank"><div class="panel-head"><h2>Task list</h2><p>Drag a task into an open time slot.</p></div><div id="scheduleTaskList" class="item-list"></div></div>
                     </div>
                 </section>
 
                 <section id="limitsPanel" class="card panel tab-panel" data-tab-panel="limits" hidden>
+                    <div class="panel-head">
+                        <h2>Block until goals are done</h2>
+                        <p>These sites stay blocked until every goal in its daily or weekly period is complete. Goal progress comes from task time you log. Add at least one goal for the lock to activate.</p>
+                    </div>
+                    <form id="goalBlockedSiteForm" class="section-form">
+                        <input id="goalBlockedSiteInput" type="text" placeholder="example.com" aria-label="Website to block until goals are complete" required>
+                        <button class="primary" type="submit">Add goal lock</button>
+                    </form>
+                    <div id="goalBlockedSiteList" class="item-list" style="margin-bottom:18px"></div>
                     <div class="panel-head">
                         <h2>Blocked websites</h2>
                         <p>Daily allowance in minutes. Extra minutes cost the site's seed rate.</p>
@@ -493,7 +520,7 @@
                 <section id="sleepPanel" class="card panel tab-panel" data-tab-panel="sleep" hidden>
                     <div class="panel-head">
                         <h2>Sleep mode</h2>
-                        <p>Permanent blocks stay until removed. Extra minutes still cost that site's seed rate. Schedules use local time.</p>
+                        <p>Permanent blocks stay until removed. Scheduled sleep blocks always enforce their hours, even if the site has extra time. Schedules use local time.</p>
                     </div>
                     <form id="sleepSiteForm" class="section-form">
                         <input id="sleepSiteInput" type="text" placeholder="example.com" aria-label="Permanently blocked website" required>
@@ -591,7 +618,7 @@
     <script type="module">
         import {
             observeAuth, createAccount, signIn, resetPassword, signOutUser, setSiteTimeLimit,
-            ensureUserData, watchUserData, addBlockedSite,
+            ensureUserData, watchUserData, addBlockedSite, addGoalBlockedSite, removeGoalBlockedSite,
             addProductiveSite, removeProductiveSite, setSiteSeedRate, setProductivitySeedRate,
             addTodoTask, updateTodoTask, completeTodoTask, removeTodoTask,
             addTaskCategory, updateTaskCategory, removeTaskCategory,
@@ -965,12 +992,59 @@
         const HOUR_PX = 48;
         const TIME_PATTERN = /^([01]\d|2[0-3]):([0-5]\d)$/;
         let proposedSchedule = null;
+        let scheduleDate = localDateKey();
+        let editingScheduleId = null;
 
         const timeToMinutes = (time) => {
             const [hours, minutes] = String(time).split(":").map(Number);
             return hours * 60 + minutes;
         };
         const minutesToTime = (total) => `${String(Math.floor(total / 60)).padStart(2, "0")}:${String(total % 60).padStart(2, "0")}`;
+        const dateFromKey = (key) => { const [y, m, d] = key.split("-").map(Number); return new Date(y, m - 1, d); };
+        const dateKeyFromDate = (date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+        const shiftDateKey = (key, days) => { const date = dateFromKey(key); date.setDate(date.getDate() + days); return dateKeyFromDate(date); };
+        function blockOccursOn(block, key) {
+            if ((block.excludedDates || []).includes(key)) return false;
+            if (!block.date) return key === localDateKey(); // Legacy daily-plan blocks.
+            if (key < block.date) return false;
+            const repeat = block.repeat || { frequency: "none" };
+            const day = dateFromKey(key).getDay();
+            if (repeat.frequency === "daily") return true;
+            if (repeat.frequency === "weekdays") return day >= 1 && day <= 5;
+            if (repeat.frequency === "weekends") return day === 0 || day === 6;
+            if (repeat.frequency === "custom") return (repeat.weekdays || []).includes(day);
+            return key === block.date;
+        }
+        function blocksForDate(blocks, key) { return (blocks || []).filter((block) => blockOccursOn(block, key)).sort((a, b) => timeToMinutes(a.start) - timeToMinutes(b.start)); }
+        function repeatFields() {
+            const frequency = document.getElementById("scheduleRepeatInput").value;
+            const weekdays = [...document.querySelectorAll("#scheduleWeekdays input:checked")].map((input) => Number(input.value));
+            return frequency === "none" ? { frequency } : { frequency, ...(frequency === "custom" ? { weekdays } : {}) };
+        }
+        function setRepeatFields(repeat = { frequency: "none" }) {
+            const frequency = repeat.frequency || "none";
+            document.getElementById("scheduleRepeatInput").value = frequency;
+            document.getElementById("scheduleWeekdays").hidden = frequency !== "custom";
+            document.querySelectorAll("#scheduleWeekdays input").forEach((input) => { input.checked = (repeat.weekdays || []).includes(Number(input.value)); });
+        }
+        document.getElementById("scheduleRepeatInput").addEventListener("change", (event) => { document.getElementById("scheduleWeekdays").hidden = event.target.value !== "custom"; });
+        function startScheduleEdit(block) {
+            editingScheduleId = block.id;
+            document.getElementById("scheduleTaskInput").value = block.taskId;
+            document.getElementById("scheduleStartInput").value = block.start;
+            document.getElementById("scheduleMinutesInput").value = block.minutes;
+            setRepeatFields(block.repeat);
+            document.querySelector("#scheduleForm button[type=submit]").textContent = "Save changes";
+            document.getElementById("cancelScheduleEdit").hidden = false;
+            document.getElementById("scheduleForm").scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+        function resetScheduleEdit() {
+            editingScheduleId = null;
+            document.querySelector("#scheduleForm button[type=submit]").textContent = "Add to schedule";
+            document.getElementById("cancelScheduleEdit").hidden = true;
+            setRepeatFields();
+        }
+        document.getElementById("cancelScheduleEdit").addEventListener("click", resetScheduleEdit);
         function clockLabel(total) {
             const hours = Math.floor(total / 60) % 24;
             const minutes = total % 60;
@@ -994,7 +1068,7 @@
                 const start = timeToMinutes(block.start);
                 const minutes = Math.round(Number(block.minutes) || 0);
                 if (start < SCHED_START || minutes < 5 || start + minutes > SCHED_END) continue;
-                valid.push({ id: String(block.id || crypto.randomUUID()), taskId: block.taskId, start: block.start, minutes });
+                valid.push({ id: String(block.id || crypto.randomUUID()), taskId: block.taskId, start: block.start, minutes, date: scheduleDate, repeat: { frequency: "none" } });
             }
             valid.sort((a, b) => timeToMinutes(a.start) - timeToMinutes(b.start));
             const result = [];
@@ -1007,7 +1081,7 @@
             return result;
         }
 
-        function renderTimeline(container, blocks, { interactive = false } = {}) {
+        function renderTimeline(container, blocks, { interactive = false, date = scheduleDate } = {}) {
             container.replaceChildren();
             const timeline = document.createElement("div");
             timeline.className = `timeline${interactive ? "" : " readonly"}`;
@@ -1027,11 +1101,13 @@
                         document.getElementById("scheduleStartInput").value = minutesToTime(t);
                         document.getElementById("scheduleTaskInput").focus();
                     });
+                    slot.addEventListener("dragover", (event) => { event.preventDefault(); timeline.classList.add("drag-over"); });
+                    slot.addEventListener("dragleave", () => timeline.classList.remove("drag-over"));
                 }
                 timeline.append(slot);
             }
             const tasks = latestData?.todoTasks || [];
-            const doneToday = new Set((latestData?.dailySeedStats?.[localDateKey()]?.completedTasks || []).map((entry) => entry.taskId));
+            const doneToday = new Set((latestData?.dailySeedStats?.[date]?.completedTasks || []).map((entry) => entry.taskId));
             for (const block of blocks) {
                 const task = tasks.find((item) => item.id === block.taskId);
                 if (!task) continue;
@@ -1053,10 +1129,10 @@
                 if (interactive) {
                     node.tabIndex = 0;
                     node.setAttribute("role", "button");
-                    node.title = "Click to complete this task";
-                    node.addEventListener("click", () => openCompletion(task, block.minutes));
+                    node.title = date === localDateKey() ? "Click to log this task; use Edit to change its calendar details" : "Use Edit to change this calendar block";
+                    if (date === localDateKey()) node.addEventListener("click", () => openCompletion(task, block.minutes));
                     node.addEventListener("keydown", (event) => {
-                        if (event.target === node && event.key === "Enter") openCompletion(task, block.minutes);
+                        if (date === localDateKey() && event.target === node && event.key === "Enter") openCompletion(task, block.minutes);
                     });
                     const remove = document.createElement("button");
                     remove.type = "button";
@@ -1065,10 +1141,45 @@
                     remove.setAttribute("aria-label", `Remove ${task.title} from the schedule`);
                     remove.addEventListener("click", async (event) => {
                         event.stopPropagation();
-                        try { await setSchedule(currentUser.email, (latestData.schedule || []).filter((item) => item.id !== block.id)); }
+                        try {
+                            const updated = (latestData.schedule || []).flatMap((item) => {
+                                if (item.id !== block.id) return [item];
+                                if (item.repeat?.frequency && item.repeat.frequency !== "none") return [{ ...item, excludedDates: [...new Set([...(item.excludedDates || []), scheduleDate])] }];
+                                return [];
+                            });
+                            await setSchedule(currentUser.email, updated);
+                        }
                         catch (error) { showMessage(dashboardMessage, readableError(error)); }
                     });
                     node.append(remove);
+                    const edit = document.createElement("button");
+                    edit.type = "button"; edit.className = "sched-remove"; edit.style.right = "27px"; edit.style.color = "var(--gold)"; edit.textContent = "✎";
+                    edit.setAttribute("aria-label", `Edit ${task.title} schedule`);
+                    edit.addEventListener("click", (event) => { event.stopPropagation(); startScheduleEdit(block); });
+                    node.append(edit);
+                    for (const edge of ["top", "bottom"]) {
+                        const handle = document.createElement("div"); handle.className = `resize-handle ${edge}`; handle.setAttribute("aria-label", `Resize ${task.title} ${edge}`);
+                        handle.addEventListener("pointerdown", (event) => {
+                            event.preventDefault(); event.stopPropagation();
+                            const startY = event.clientY; const original = { ...block }; const originalStart = timeToMinutes(block.start); const originalEnd = originalStart + block.minutes;
+                            const move = (moveEvent) => {
+                                const delta = Math.round((moveEvent.clientY - startY) / (HOUR_PX / 4)) * 15;
+                                const nextStart = edge === "top" ? Math.max(SCHED_START, Math.min(originalEnd - 5, originalStart + delta)) : originalStart;
+                                const nextEnd = edge === "bottom" ? Math.min(SCHED_END, Math.max(originalStart + 5, originalEnd + delta)) : originalEnd;
+                                block.start = minutesToTime(nextStart); block.minutes = nextEnd - nextStart;
+                                renderTimeline(document.getElementById("scheduleTimeline"), blocksForDate(latestData?.schedule || [], scheduleDate), { interactive: true, date: scheduleDate });
+                            };
+                            const finish = async () => {
+                                document.removeEventListener("pointermove", move); document.removeEventListener("pointerup", finish);
+                                try {
+                                    const updated = (latestData.schedule || []).map((item) => item.id === original.id ? { ...item, start: block.start, minutes: block.minutes } : item);
+                                    await setSchedule(currentUser.email, updated);
+                                } catch (error) { showMessage(dashboardMessage, readableError(error)); }
+                            };
+                            document.addEventListener("pointermove", move); document.addEventListener("pointerup", finish, { once: true });
+                        });
+                        node.append(handle);
+                    }
                 }
                 timeline.append(node);
             }
@@ -1087,13 +1198,56 @@
                 for (let t = SCHED_START; t < SCHED_END; t += 15) startSelect.add(new Option(clockLabel(t), minutesToTime(t)));
             }
             document.querySelector("#scheduleForm button[type=submit]").disabled = !tasks.length;
-            renderTimeline(document.getElementById("scheduleTimeline"), data.schedule || [], { interactive: true });
+            const dateInput = document.getElementById("scheduleDateInput");
+            if (dateInput.value !== scheduleDate) dateInput.value = scheduleDate;
+            document.getElementById("scheduleDayHeading").textContent = dateFromKey(scheduleDate).toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" });
+            const dayBlocks = blocksForDate(data.schedule || [], scheduleDate);
+            renderTimeline(document.getElementById("scheduleTimeline"), dayBlocks, { interactive: true, date: scheduleDate });
+            renderScheduleTaskList(data.todoTasks || []);
             document.getElementById("scheduleProposal").hidden = !proposedSchedule;
             if (proposedSchedule) {
                 document.getElementById("proposalSummary").textContent = proposedSchedule.summary || "Here is a schedule based on your request.";
                 renderTimeline(document.getElementById("proposalTimeline"), proposedSchedule.blocks);
             }
         }
+
+        function renderScheduleTaskList(tasks) {
+            const list = document.getElementById("scheduleTaskList"); list.replaceChildren();
+            if (!tasks.length) { const empty = document.createElement("div"); empty.className = "empty-card"; empty.textContent = "Add tasks on the Tasks page, then drag them here."; list.append(empty); return; }
+            for (const task of tasks) {
+                const row = document.createElement("div"); row.className = "list-item schedule-task"; row.draggable = true; row.dataset.taskId = task.id; row.style.borderLeft = `4px solid ${taskDisplayColor(task)}`;
+                const title = document.createElement("span"); title.className = "item-title"; title.textContent = task.title;
+                const meta = document.createElement("span"); meta.className = "item-meta"; meta.textContent = `${task.minutes || 30} min · drag into a time`;
+                const copy = document.createElement("span"); copy.className = "task-copy"; copy.append(title, meta); row.append(copy);
+                row.addEventListener("dragstart", (event) => event.dataTransfer.setData("text/plain", task.id)); list.append(row);
+            }
+            const timeline = document.querySelector("#scheduleTimeline .timeline");
+            if (timeline) {
+                timeline.addEventListener("dragover", (event) => { event.preventDefault(); timeline.classList.add("drag-over"); });
+                timeline.addEventListener("dragleave", () => timeline.classList.remove("drag-over"));
+                timeline.addEventListener("drop", async (event) => {
+                    event.preventDefault(); timeline.classList.remove("drag-over");
+                    const taskId = event.dataTransfer.getData("text/plain");
+                    const rect = timeline.getBoundingClientRect();
+                    const offset = Math.max(0, Math.min(SCHED_END - SCHED_START - 15, (event.clientY - rect.top) / rect.height * (SCHED_END - SCHED_START)));
+                    const start = Math.round((SCHED_START + offset) / 15) * 15;
+                    const task = tasks.find((item) => item.id === taskId); if (!task || start >= SCHED_END) return;
+                    const minutes = Math.max(15, Math.round((Number(task.minutes) || 30) / 15) * 15);
+                    const current = latestData?.schedule || [];
+                    const occurrence = blocksForDate(current, scheduleDate);
+                    if (overlapsSchedule(occurrence, start, minutes)) { showMessage(dashboardMessage, "That overlaps another block."); return; }
+                    try { await setSchedule(current.concat({ taskId, start: minutesToTime(start), minutes, date: scheduleDate, repeat: { frequency: "none" } })); showMessage(dashboardMessage, "Task added to your schedule.", true); }
+                    catch (error) { showMessage(dashboardMessage, readableError(error)); }
+                });
+            }
+        }
+
+        const scheduleDateInput = document.getElementById("scheduleDateInput");
+        scheduleDateInput.value = scheduleDate;
+        scheduleDateInput.addEventListener("change", () => { if (scheduleDateInput.value) { scheduleDate = scheduleDateInput.value; resetScheduleEdit(); renderSchedule(latestData || {}); } });
+        document.getElementById("schedulePrevDay").addEventListener("click", () => { scheduleDate = shiftDateKey(scheduleDate, -1); scheduleDateInput.value = scheduleDate; resetScheduleEdit(); renderSchedule(latestData || {}); });
+        document.getElementById("scheduleNextDay").addEventListener("click", () => { scheduleDate = shiftDateKey(scheduleDate, 1); scheduleDateInput.value = scheduleDate; resetScheduleEdit(); renderSchedule(latestData || {}); });
+        document.getElementById("scheduleToday").addEventListener("click", () => { scheduleDate = localDateKey(); scheduleDateInput.value = scheduleDate; resetScheduleEdit(); renderSchedule(latestData || {}); });
 
         document.getElementById("scheduleTaskInput").addEventListener("change", (event) => {
             const task = (latestData?.todoTasks || []).find((item) => item.id === event.target.value);
@@ -1110,16 +1264,31 @@
             const startMinutes = timeToMinutes(start);
             if (startMinutes + minutes > SCHED_END) { showMessage(dashboardMessage, "That block runs past 10pm."); return; }
             const current = latestData?.schedule || [];
-            if (overlapsSchedule(current, startMinutes, minutes)) { showMessage(dashboardMessage, "That overlaps another block."); return; }
+            const repeat = repeatFields();
+            if (repeat.frequency === "custom" && !repeat.weekdays.length) { showMessage(dashboardMessage, "Choose at least one day for a custom repeat."); return; }
+            const candidate = { id: editingScheduleId || crypto.randomUUID(), taskId, start, minutes, date: scheduleDate, repeat };
+            const wasEditing = Boolean(editingScheduleId);
+            const proposed = editingScheduleId ? current.map((item) => item.id === editingScheduleId ? candidate : item) : [...current, candidate];
+            if (overlapsSchedule(blocksForDate(proposed.filter((item) => item.id !== candidate.id), scheduleDate), startMinutes, minutes)) { showMessage(dashboardMessage, "That overlaps another block."); return; }
             try {
-                await setSchedule(currentUser.email, [...current, { taskId, start, minutes }]);
-                showMessage(dashboardMessage, "Added to your schedule.", true);
+                await setSchedule(currentUser.email, proposed);
+                resetScheduleEdit();
+                showMessage(dashboardMessage, wasEditing ? "Schedule updated." : "Added to your schedule.", true);
             } catch (error) { showMessage(dashboardMessage, readableError(error)); }
         });
 
         document.getElementById("clearSchedule").addEventListener("click", async () => {
-            if (!(latestData?.schedule || []).length || !confirm("Clear your whole schedule?")) return;
-            try { await setSchedule(currentUser.email, []); }
+            const day = blocksForDate(latestData?.schedule || [], scheduleDate);
+            if (!day.length || !confirm("Clear all scheduled blocks for this day?")) return;
+            const ids = new Set(day.map((block) => block.id));
+            try {
+                const updated = (latestData.schedule || []).flatMap((block) => {
+                    if (!ids.has(block.id)) return [block];
+                    if (block.repeat?.frequency && block.repeat.frequency !== "none") return [{ ...block, excludedDates: [...new Set([...(block.excludedDates || []), scheduleDate])] }];
+                    return [];
+                });
+                await setSchedule(currentUser.email, updated);
+            }
             catch (error) { showMessage(dashboardMessage, readableError(error)); }
         });
 
@@ -1296,15 +1465,17 @@
 
             const list = document.getElementById("homeTasks");
             list.replaceChildren();
-            const tasks = data.todoTasks || [];
-            if (!tasks.length) {
+            const scheduled = blocksForDate(data.schedule || [], today);
+            if (!scheduled.length) {
                 const empty = document.createElement("div");
                 empty.className = "empty-card";
-                empty.textContent = "Add a task on the Tasks page to start logging time.";
+                empty.textContent = "Nothing is scheduled for today. Add tasks on the Schedule page.";
                 list.append(empty);
                 return;
             }
-            for (const task of tasks) {
+            for (const block of scheduled) {
+                const task = (data.todoTasks || []).find((item) => item.id === block.taskId);
+                if (!task) continue;
                 const category = (data.taskCategories || []).find((item) => item.id === task.categoryId);
                 const row = document.createElement("div");
                 row.className = "list-item";
@@ -1316,13 +1487,13 @@
                 title.textContent = task.title;
                 const meta = document.createElement("span");
                 meta.className = "item-meta";
-                meta.textContent = `${category ? category.name : "No category"} · ${formatSeeds(taskSeedRate(task))} seeds/min`;
+                meta.textContent = `${clockLabel(timeToMinutes(block.start))} · ${block.minutes} min${category ? ` · ${category.name}` : ""}`;
                 copy.append(title, meta);
                 const log = document.createElement("button");
                 log.type = "button";
                 log.className = "subtle";
                 log.textContent = "Log";
-                log.addEventListener("click", () => openCompletion(task));
+                log.addEventListener("click", () => openCompletion(task, block.minutes));
                 row.append(copy, log);
                 list.append(row);
             }
@@ -1546,6 +1717,14 @@
                     } finally { saveLimit.disabled = false; }
                 });
                 limitControl.append(limitInput, limitSuffix, saveLimit);
+                // Time bought with seeds in the extension today (saved by the extension).
+                const boughtSeconds = Number(latestData.dailySeedStats?.[localDateKey()]?.purchases?.[domain]) || 0;
+                if (boughtSeconds > 0) {
+                    const bought = document.createElement("span");
+                    bought.className = "item-meta";
+                    bought.textContent = `+${formatSeeds(Math.round(boughtSeconds / 60))} min bought today`;
+                    limitControl.append(bought);
+                }
                 limitCell.append(limitControl);
 
                 const rateCell = document.createElement("td");
@@ -1594,6 +1773,7 @@
             renderCoinItems("penaltyList", latestData.coinPenalties || [], "penalty");
             renderSiteCollection("sleepSiteList", latestData.sleepModeSites || [], (site) => removeSleepModeSite(currentUser.email, site), () => "Always blocked");
             renderSiteCollection("sleepScheduleList", latestData.sleepSchedules || [], (schedule) => removeSleepSchedule(currentUser.email, schedule.id), (schedule) => `${schedule.startTime}–${schedule.endTime}`);
+            renderSiteCollection("goalBlockedSiteList", latestData.goalBlockedSites || [], (site) => removeGoalBlockedSite(currentUser.email, site), () => "Until all goals are complete");
 
             const today = localDateKey();
             if (currentUser && latestData.lastDashboardLoginDate !== today && recapChecked !== today) {
@@ -1835,6 +2015,17 @@
             } catch (error) {
                 showMessage(dashboardMessage, readableError(error));
             }
+        });
+
+        document.getElementById("goalBlockedSiteForm").addEventListener("submit", async (event) => {
+            event.preventDefault();
+            const domain = normalizeDomain(document.getElementById("goalBlockedSiteInput").value.trim());
+            if (!domain) { showMessage(dashboardMessage, "Enter a valid website domain."); return; }
+            try {
+                await addGoalBlockedSite(currentUser.email, domain);
+                document.getElementById("goalBlockedSiteInput").value = "";
+                showMessage(dashboardMessage, `${domain} will stay blocked until all goals are complete.`, true);
+            } catch (error) { showMessage(dashboardMessage, readableError(error)); }
         });
 
         document.getElementById("productiveSiteForm").addEventListener("submit", async (event) => {

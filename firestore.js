@@ -69,6 +69,7 @@ function defaultGoalsFor(categories) {
 
 const defaults = {
     blockedSites: [],
+    goalBlockedSites: [],
     siteTimeLimits: {},
     siteSeedRates: {},
     productivitySites: [],
@@ -168,7 +169,9 @@ function pruneDailyStats(stats) {
 function bumpDailyStats(data, { gained = 0, lost = 0, task = null } = {}) {
     const today = localDateKey();
     const stats = pruneDailyStats(data.dailySeedStats || {});
+    // Keep other fields on the day, such as time bought in the extension.
     const day = {
+        ...(stats[today] || {}),
         gained: Number(stats[today]?.gained) || 0,
         lost: Number(stats[today]?.lost) || 0,
         completedTasks: [...(stats[today]?.completedTasks || [])]
@@ -331,6 +334,7 @@ export async function addProductiveSite(email, domain, seedRate = 1) {
     const rate = normalizeSeedRate(seedRate, 1);
     await changeUserData(email, (data) => {
         if ((data.blockedSites || []).includes(domain)
+            || (data.goalBlockedSites || []).includes(domain)
             || (data.sleepModeSites || []).includes(domain)
             || (data.sleepSchedules || []).some((schedule) => schedule.domain === domain)) {
             throw new Error("A blocked or sleep-mode site cannot also earn productivity seeds.");
@@ -343,6 +347,24 @@ export async function addProductiveSite(email, domain, seedRate = 1) {
             }
         };
     });
+}
+
+export async function addGoalBlockedSite(email, domain) {
+    await changeUserData(email, (data) => {
+        const productivitySeedRates = { ...(data.productivitySeedRates || {}) };
+        delete productivitySeedRates[domain];
+        return {
+            goalBlockedSites: [...new Set([...(data.goalBlockedSites || []), domain])],
+            productivitySites: (data.productivitySites || []).filter((site) => site !== domain),
+            productivitySeedRates
+        };
+    });
+}
+
+export async function removeGoalBlockedSite(email, domain) {
+    await changeUserData(email, (data) => ({
+        goalBlockedSites: (data.goalBlockedSites || []).filter((site) => site !== domain)
+    }));
 }
 
 export async function setProductivitySeedRate(email, domain, seedRate) {
@@ -588,18 +610,15 @@ function cleanSchedule(blocks) {
         const start = scheduleMinutes(block.start);
         const minutes = Math.min(Math.max(5, Math.min(720, Math.round(Number(block.minutes) || 0))), 1440 - start);
         if (minutes < 5) continue;
-        clean.push({ id: String(block.id || crypto.randomUUID()), taskId: String(block.taskId), start: block.start, minutes });
+        const repeat = block.repeat && typeof block.repeat === "object" ? {
+            frequency: ["daily", "weekdays", "weekends", "custom"].includes(block.repeat.frequency) ? block.repeat.frequency : "none",
+            ...(block.repeat.frequency === "custom" ? { weekdays: [...new Set((Array.isArray(block.repeat.weekdays) ? block.repeat.weekdays : []).map(Number).filter((day) => Number.isInteger(day) && day >= 0 && day <= 6))] } : {})
+        } : { frequency: "none" };
+        const date = /^\d{4}-\d{2}-\d{2}$/.test(String(block.date || "")) ? String(block.date) : "";
+        const excludedDates = [...new Set((Array.isArray(block.excludedDates) ? block.excludedDates : []).filter((day) => /^\d{4}-\d{2}-\d{2}$/.test(String(day))))];
+        clean.push({ id: String(block.id || crypto.randomUUID()), taskId: String(block.taskId), start: block.start, minutes, ...(date ? { date } : {}), repeat, ...(excludedDates.length ? { excludedDates } : {}) });
     }
-    clean.sort((a, b) => scheduleMinutes(a.start) - scheduleMinutes(b.start));
-    // Drop any block that overlaps the one before it.
-    const result = [];
-    let cursor = 0;
-    for (const block of clean) {
-        if (scheduleMinutes(block.start) < cursor) continue;
-        result.push(block);
-        cursor = scheduleMinutes(block.start) + block.minutes;
-    }
-    return result;
+    return clean.sort((a, b) => String(a.date || "").localeCompare(String(b.date || "")) || scheduleMinutes(a.start) - scheduleMinutes(b.start));
 }
 
 export async function setSchedule(email, blocks) {
